@@ -53,7 +53,7 @@ public class WebNote extends BaseEntity {
     private String cpid;
 
     /**
-     * 笔记urls
+     * 笔记 urls
      */
     private String urls;
 
@@ -83,7 +83,7 @@ public class WebNote extends BaseEntity {
     private String auditStatus;
 
     /**
-     * 笔记类型（0：图片 1：视频）
+     * 笔记类型（0-图片，1-视频）
      */
     private String noteType;
 

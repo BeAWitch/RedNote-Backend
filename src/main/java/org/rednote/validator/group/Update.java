@@ -1,9 +1,7 @@
 package org.rednote.validator.group;
 
 /**
- * Update 用于 edit更新
- *
- * @Author hongshu
+ * Update 用于 edit 更新
  */
 public interface Update {
 }

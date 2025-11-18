@@ -8,7 +8,6 @@ import org.rednote.domain.dto.Result;
 import org.rednote.domain.dto.SearchNoteDTO;
 import org.rednote.domain.entity.WebNavbar;
 import org.rednote.domain.vo.NoteSearchVO;
-import org.rednote.service.IWebSearchNoteService;
 import org.rednote.validator.myVaildator.noLogin.NoLoginIntercept;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
