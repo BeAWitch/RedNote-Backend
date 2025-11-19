@@ -1,5 +1,7 @@
 server:
   port: 8080
+  servlet:
+    context-path: /
 spring:
   application:
     name: RedNote
@@ -9,7 +11,7 @@ spring:
     username: root
     password: root
   jackson:
-    default-property-inclusion: non_null # JSON?????????
+    default-property-inclusion: non_null # JSON处理时忽略非空字段
   data:
     redis:
       host: localhost
@@ -17,28 +19,24 @@ spring:
       timeout: 10s
       lettuce:
         pool:
-          # ???????????
           min-idle: 0
-          # ???????????
           max-idle: 8
-          # ????????????
           max-active: 8
-          # #???????????????????????
           max-wait: -1ms
 
 mybatis-plus:
-  type-aliases-package: com.rednote.entity # ?????
+  type-aliases-package: org.rednote.domain.entity
 
 logging:
   level:
-    com.rednote: debug
+    org.rednote: debug
 
 springdoc:
   api-docs:
-  enabled: true # ??/??API?????
-  path: /v3/api-docs # ??API???????
+    enabled: true
+    path: /v3/api-docs
   swagger-ui:
-    path: /swagger-ui.html # ??Swagger UI?????
+    path: /swagger-ui.html
     disable-swagger-default-url: true
-    display-request-duration: true # ????????
-    packages-to-scan: org.rednote.controller # ???????
+    display-request-duration: true
+    packages-to-scan: org.rednote.controller

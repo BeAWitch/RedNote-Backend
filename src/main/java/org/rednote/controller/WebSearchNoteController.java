@@ -1,3 +1,4 @@
+/*
 package org.rednote.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -28,13 +29,15 @@ public class WebSearchNoteController {
     @Autowired
     private IWebSearchNoteService noteService;
 
-    /**
+    */
+/**
      * 搜索对应的笔记
      *
      * @param currentPage 当前页
      * @param pageSize    分页数
      * @param searchNoteDTO   笔记搜索条件
-     */
+     *//*
+
     @NoLoginIntercept
     @PostMapping("getNoteByDTO/{currentPage}/{pageSize}")
     @Operation(summary = "条件搜索笔记", description = "根据条件分页搜索笔记")
@@ -46,11 +49,13 @@ public class WebSearchNoteController {
         return Result.ok(page);
     }
 
-    /**
+    */
+/**
      * 搜索对应的笔记分类聚合
      *
      * @param searchNoteDTO 笔记搜索条件
-     */
+     *//*
+
     @NoLoginIntercept
     @PostMapping("getCategoryAgg")
     @Operation(summary = "获取分类聚合", description = "根据搜索条件获取分类聚合结果")
@@ -60,12 +65,14 @@ public class WebSearchNoteController {
         return Result.ok(categoryList);
     }
 
-    /**
+    */
+/**
      * 分页查询推荐笔记
      *
      * @param currentPage 当前页
      * @param pageSize    分页数
-     */
+     *//*
+
     @NoLoginIntercept
     @GetMapping("getRecommendNote/{currentPage}/{pageSize}")
     @Operation(summary = "获取推荐笔记", description = "分页获取推荐笔记列表")
@@ -76,12 +83,14 @@ public class WebSearchNoteController {
         return Result.ok(page);
     }
 
-    /**
+    */
+/**
      * 获取热门笔记
      *
      * @param currentPage 当前页
      * @param pageSize    分页数
-     */
+     *//*
+
     @GetMapping("getHotNote/{currentPage}/{pageSize}")
     @Operation(summary = "获取热门笔记", description = "分页获取热门笔记列表")
     public Result<Page<NoteSearchVO>> getHotNote(
@@ -91,11 +100,13 @@ public class WebSearchNoteController {
         return Result.ok(page);
     }
 
-    /**
+    */
+/**
      * 增加笔记
      *
      * @param noteSearchVo 笔记
-     */
+     *//*
+
     @PostMapping("addNote")
     @Operation(summary = "添加笔记", description = "向搜索索引中添加笔记")
     public Result<String> addNote(@Parameter(description = "笔记数据") @RequestBody NoteSearchVO noteSearchVo) {
@@ -103,11 +114,13 @@ public class WebSearchNoteController {
         return Result.ok("添加成功");
     }
 
-    /**
+    */
+/**
      * 修改笔记
      *
      * @param noteSearchVo 笔记
-     */
+     *//*
+
     @PostMapping("updateNote")
     @Operation(summary = "更新笔记", description = "更新搜索索引中的笔记")
     public Result<String> updateNote(@Parameter(description = "笔记数据") @RequestBody NoteSearchVO noteSearchVo) {
@@ -115,11 +128,13 @@ public class WebSearchNoteController {
         return Result.ok("更新成功");
     }
 
-    /**
+    */
+/**
      * 删除es中的笔记
      *
      * @param noteId 笔记ID
-     */
+     *//*
+
     @DeleteMapping("deleteNote/{noteId}")
     @Operation(summary = "删除笔记", description = "从搜索索引中删除笔记")
     public Result<String> deleteNote(@Parameter(description = "笔记ID") @PathVariable String noteId) {
@@ -127,9 +142,11 @@ public class WebSearchNoteController {
         return Result.ok("删除成功");
     }
 
-    /**
+    */
+/**
      * 批量增加笔记
-     */
+     *//*
+
     @PostMapping("addNoteBulkData")
     @NoLoginIntercept
     @Operation(summary = "批量添加笔记", description = "批量向搜索索引中添加笔记数据")
@@ -138,9 +155,11 @@ public class WebSearchNoteController {
         return Result.ok("批量添加成功");
     }
 
-    /**
+    */
+/**
      * 清空笔记
-     */
+     *//*
+
     @DeleteMapping("delNoteBulkData")
     @NoLoginIntercept
     @Operation(summary = "清空笔记数据", description = "清空搜索索引中的所有笔记数据")
@@ -149,9 +168,11 @@ public class WebSearchNoteController {
         return Result.ok("清空成功");
     }
 
-    /**
+    */
+/**
      * 重置索引数据
-     */
+     *//*
+
     @PostMapping("refreshNoteData")
     @NoLoginIntercept
     @Operation(summary = "刷新笔记数据", description = "重新构建搜索索引数据")
@@ -160,3 +181,4 @@ public class WebSearchNoteController {
         return Result.ok("刷新成功");
     }
 }
+*/

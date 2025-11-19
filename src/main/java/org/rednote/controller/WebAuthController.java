@@ -13,6 +13,7 @@ import org.rednote.domain.entity.WebUser;
 import org.rednote.service.IWebAuthUserService;
 import org.rednote.validator.group.AuthValidGroup;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

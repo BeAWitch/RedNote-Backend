@@ -170,7 +170,13 @@ public class WebAuthUserServiceImpl extends ServiceImpl<WebUserMapper, WebUser> 
         Map<String, Object> userMap = BeanUtil.beanToMap(authUser, new HashMap<>(),
                 CopyOptions.create()
                         .setIgnoreNullValue(true)
-                        .setFieldValueEditor((field, fieldValue) -> fieldValue.toString())
+                        .setFieldValueEditor((field, fieldValue) -> {
+                            if (fieldValue == null) {
+                                return null;
+                            }
+                            // 确保所有值都转换为 String
+                            return fieldValue.toString();
+                        })
         );
         // 存储
         String tokenKey = RedisConstants.LOGIN_USER_KEY + token;
