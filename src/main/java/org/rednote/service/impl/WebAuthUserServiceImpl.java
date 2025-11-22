@@ -1,7 +1,6 @@
 package org.rednote.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.bean.copier.CopyOptions;
 import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.RandomUtil;
@@ -118,7 +117,7 @@ public class WebAuthUserServiceImpl extends ServiceImpl<WebUserMapper, WebUser> 
     @Override
     public void logout(String token) {
         String tokenKey = RedisConstants.LOGIN_USER_KEY + token;
-        stringRedisTemplate.opsForHash().delete(tokenKey);
+        stringRedisTemplate.delete(tokenKey);
     }
 
     /**
@@ -166,21 +165,9 @@ public class WebAuthUserServiceImpl extends ServiceImpl<WebUserMapper, WebUser> 
         // 保存用户信息到 redis 中
         // 生成 token 作为登录令牌
         String token = UUID.randomUUID().toString(true);
-        // 将 user 对象转为 HashMap 存储
-        Map<String, Object> userMap = BeanUtil.beanToMap(authUser, new HashMap<>(),
-                CopyOptions.create()
-                        .setIgnoreNullValue(true)
-                        .setFieldValueEditor((field, fieldValue) -> {
-                            if (fieldValue == null) {
-                                return null;
-                            }
-                            // 确保所有值都转换为 String
-                            return fieldValue.toString();
-                        })
-        );
         // 存储
         String tokenKey = RedisConstants.LOGIN_USER_KEY + token;
-        stringRedisTemplate.opsForHash().putAll(tokenKey, userMap);
+        stringRedisTemplate.opsForValue().set(tokenKey, authUser.getId());
         // 设置 token 有效期
         stringRedisTemplate.expire(tokenKey, RedisConstants.LOGIN_USER_TTL, TimeUnit.MINUTES);
 

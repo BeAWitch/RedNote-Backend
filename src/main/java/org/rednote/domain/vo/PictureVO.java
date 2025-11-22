@@ -12,7 +12,7 @@ import org.rednote.validator.group.Update;
 @ToString
 @Data
 @Schema(name = "图片 VO")
-public class PictureVO extends BaseVO<PictureVO> {
+public class PictureVO extends BaseVO {
 
     @Schema(description = "图片 UID")
     private String fileUid;

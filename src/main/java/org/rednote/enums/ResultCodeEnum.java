@@ -10,8 +10,8 @@ public enum ResultCodeEnum {
 
     SUCCESS(200, "成功"),
     FAIL(201, "失败"),
-    TOKEN_FAIL(401, "token 异常"),
-    TOKEN_EXIST(501, "token 过期"),
+    TOKEN_FAIL(501, "token 异常"),
+    TOKEN_EXIST(401, "token 过期"),
     ERROR_PASSWORD(502, "密码有误，请检查重新输入"),
 
     NOT_NULL(10001, "为空");

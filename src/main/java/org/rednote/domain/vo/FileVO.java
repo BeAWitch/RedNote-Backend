@@ -10,7 +10,7 @@ import java.util.Map;
 @Data
 @ToString
 @Schema(name = "文件 VO")
-public class FileVO extends BaseVO<FileVO> {
+public class FileVO extends BaseVO {
 
     @Schema(description = "用户 UID")
     private String userUid;

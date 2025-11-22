@@ -3,7 +3,6 @@ package org.rednote.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import jakarta.validation.groups.Default;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +12,6 @@ import org.rednote.domain.entity.WebUser;
 import org.rednote.service.IWebAuthUserService;
 import org.rednote.validator.group.AuthValidGroup;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -58,7 +56,7 @@ public class WebAuthController {
 
     @Operation(summary = "退出登录", description = "用户退出登录")
     @GetMapping("logout")
-    public Result<String> loginOut(@Parameter(description = "token") String token) {
+    public Result<String> loginOut(@Parameter(description = "accessToken") String token) {
         authUserService.logout(token);
         return Result.ok("退出成功");
     }

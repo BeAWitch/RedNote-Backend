@@ -78,7 +78,7 @@ public class WebNote extends BaseEntity {
     private String status;
 
     /**
-     * 审核状态
+     * 审核状态（0-未过审，1-过审）
      */
     private String auditStatus;
 

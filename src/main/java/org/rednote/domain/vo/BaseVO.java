@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @Schema(name = "基础 VO")
-public class BaseVO<T> extends PageInfo<T> {
+public class BaseVO extends PageInfo {
 
     @Schema(description = "唯一 UID")
     private String uid;

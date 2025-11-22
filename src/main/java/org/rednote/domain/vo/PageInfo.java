@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @Schema(name = "分页参数")
-public class PageInfo<T> {
+public class PageInfo {
 
     @Schema(description = "关键字")
     private String keyword;

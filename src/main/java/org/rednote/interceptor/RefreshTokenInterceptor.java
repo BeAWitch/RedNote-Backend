@@ -3,11 +3,12 @@ package org.rednote.interceptor;
 import cn.hutool.core.util.StrUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.web.servlet.HandlerInterceptor;
-import java.util.concurrent.TimeUnit;
 import org.rednote.constant.RedisConstants;
 import org.rednote.utils.UserHolder;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.web.servlet.HandlerInterceptor;
+
+import java.util.concurrent.TimeUnit;
 
 public class RefreshTokenInterceptor implements HandlerInterceptor {
 
@@ -20,7 +21,7 @@ public class RefreshTokenInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         // 获取请求头中的 token
-        String token = request.getHeader("authorization");
+        String token = request.getHeader("accessToken");
         if (StrUtil.isBlank(token)) {
             return true;
         }
@@ -28,7 +29,7 @@ public class RefreshTokenInterceptor implements HandlerInterceptor {
         String key  = RedisConstants.LOGIN_USER_KEY + token;
         String userId = stringRedisTemplate.opsForValue().get(key);
         // 判断用户是否存在
-        if (StrUtil.isNotEmpty(userId)) {
+        if (StrUtil.isEmpty(userId)) {
             return true;
         }
         // 存在，保存用户 id 到 ThreadLocal

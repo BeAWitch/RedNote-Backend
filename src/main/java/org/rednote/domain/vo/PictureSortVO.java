@@ -11,7 +11,7 @@ import org.rednote.validator.group.Update;
 @ToString
 @Data
 @Schema(name = "图片分类 VO")
-public class PictureSortVO extends BaseVO<PictureSortVO> {
+public class PictureSortVO extends BaseVO{
 
     @Schema(description = "父 UID")
     private String parentUid;

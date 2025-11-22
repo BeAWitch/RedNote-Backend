@@ -13,7 +13,7 @@ public class LoginInterceptor implements HandlerInterceptor {
         // 1. 判断是否需要拦截（ThreadLocal 中是否有用户）
         if (UserHolder.getUserId() == null) {
             // 没有，需要拦截，设置状态码
-            response.setStatus(ResultCodeEnum.TOKEN_FAIL.getCode());
+            response.setStatus(ResultCodeEnum.TOKEN_EXIST.getCode());
             // 拦截
             return false;
         }
