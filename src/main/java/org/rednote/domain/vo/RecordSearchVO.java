@@ -10,7 +10,6 @@ import java.io.Serializable;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(name = "搜索记录 VO")
 public class RecordSearchVO implements Serializable {
-
     @Schema(description = "用户 ID")
     private String uid;
 

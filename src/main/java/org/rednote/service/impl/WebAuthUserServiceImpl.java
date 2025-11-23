@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.rednote.constant.AuthConstants;
 import org.rednote.constant.RedisConstants;
 import org.rednote.domain.dto.AuthUserDTO;
+import org.rednote.domain.dto.Result;
 import org.rednote.domain.entity.WebUser;
 import org.rednote.enums.ResultCodeEnum;
 import org.rednote.exception.RedNoteException;
@@ -86,6 +87,32 @@ public class WebAuthUserServiceImpl extends ServiceImpl<WebUserMapper, WebUser> 
         }
         this.setUserInfoAndToken(map, currentUser);
         return map;
+    }
+
+    /**
+     * 发送验证码
+     * TODO 调用第三方服务
+     *
+     * @param authUserDTO 用户
+     */
+    @Override
+    public Result sendCode(AuthUserDTO authUserDTO) {
+        // 符合，生成验证码
+        String code = RandomUtil.randomNumbers(6);
+
+        // 保存验证码到 redis
+        stringRedisTemplate.opsForValue().set(
+                RedisConstants.LOGIN_CODE_KEY + authUserDTO.getPhone(),
+                code,
+                RedisConstants.LOGIN_CODE_TTL,
+                TimeUnit.MINUTES);
+
+        // 发送验证码
+        // 调用第三方服务，省略
+        log.debug("发送验证码成功，验证码：{}", code);
+
+        // 返回 OK
+        return Result.ok();
     }
 
     /**

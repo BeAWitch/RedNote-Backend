@@ -2,6 +2,7 @@ package org.rednote.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.rednote.domain.dto.AuthUserDTO;
+import org.rednote.domain.dto.Result;
 import org.rednote.domain.entity.WebUser;
 
 import java.util.Map;
@@ -26,6 +27,13 @@ public interface IWebAuthUserService extends IService<WebUser> {
     Map<String, Object> loginByCode(AuthUserDTO authUserDTO);
 
     /**
+     * 发送验证码
+     *
+     * @param authUserDTO 用户
+     */
+    Result sendCode(AuthUserDTO authUserDTO);
+
+    /**
      * 用户注册
      *
      * @param authUserDTO 前台传递用户信息
@@ -45,4 +53,5 @@ public interface IWebAuthUserService extends IService<WebUser> {
      * @param authUserDTO 用户
      */
     boolean updatePassword(AuthUserDTO authUserDTO);
+
 }

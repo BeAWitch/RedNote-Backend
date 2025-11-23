@@ -13,6 +13,7 @@ import org.rednote.service.IWebAuthUserService;
 import org.rednote.validator.group.AuthValidGroup;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,7 +33,7 @@ public class WebAuthController {
     @Operation(summary = "用户登录", description = "用户账号密码登录")
     @PostMapping("login")
     public Result<Map<String, Object>> login(@Parameter(description = "用户信息")
-                                                 @RequestBody @Validated(AuthValidGroup.Password.class)
+                                                 @RequestBody /*@Validated(AuthValidGroup.Password.class)*/
                                                  AuthUserDTO authUserDTO) {
         Map<String, Object> map = authUserService.login(authUserDTO);
         return Result.ok(map);
@@ -47,6 +48,14 @@ public class WebAuthController {
         return Result.ok(map);
     }
 
+    @Operation(summary = "验证码发送", description = "发送验证码")
+    @PostMapping("sendCode")
+    public Result sendCode(@Parameter(description = "用户信息") @RequestBody
+                                                   @Validated(AuthValidGroup.Phone.class)
+                                                   AuthUserDTO authUserDTO) {
+        return authUserService.sendCode(authUserDTO);
+    }
+
     @Operation(summary = "用户注册", description = "新用户注册账号")
     @PostMapping("register")
     public Result<WebUser> register(@Parameter(description = "用户信息") @RequestBody @Validated(Default.class) AuthUserDTO authUserDTO) {
@@ -55,8 +64,8 @@ public class WebAuthController {
     }
 
     @Operation(summary = "退出登录", description = "用户退出登录")
-    @GetMapping("logout")
-    public Result<String> loginOut(@Parameter(description = "accessToken") String token) {
+    @GetMapping("logout/{accessToken}")
+    public Result<String> logout(@Parameter(description = "accessToken") @PathVariable("accessToken") String token) {
         authUserService.logout(token);
         return Result.ok("退出成功");
     }
