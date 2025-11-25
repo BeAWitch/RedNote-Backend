@@ -96,7 +96,7 @@ public class WebAuthUserServiceImpl extends ServiceImpl<WebUserMapper, WebUser> 
      * @param authUserDTO 用户
      */
     @Override
-    public Result sendCode(AuthUserDTO authUserDTO) {
+    public Result<?> sendCode(AuthUserDTO authUserDTO) {
         // 符合，生成验证码
         String code = RandomUtil.randomNumbers(6);
 
@@ -111,7 +111,6 @@ public class WebAuthUserServiceImpl extends ServiceImpl<WebUserMapper, WebUser> 
         // 调用第三方服务，省略
         log.debug("发送验证码成功，验证码：{}", code);
 
-        // 返回 OK
         return Result.ok();
     }
 

@@ -33,7 +33,7 @@ public class WebAuthController {
     @Operation(summary = "用户登录", description = "用户账号密码登录")
     @PostMapping("login")
     public Result<Map<String, Object>> login(@Parameter(description = "用户信息")
-                                                 @RequestBody /*@Validated(AuthValidGroup.Password.class)*/
+                                                 @RequestBody /* todo 验证，测试暂时不验证 @Validated(AuthValidGroup.Password.class)*/
                                                  AuthUserDTO authUserDTO) {
         Map<String, Object> map = authUserService.login(authUserDTO);
         return Result.ok(map);
@@ -50,7 +50,7 @@ public class WebAuthController {
 
     @Operation(summary = "验证码发送", description = "发送验证码")
     @PostMapping("sendCode")
-    public Result sendCode(@Parameter(description = "用户信息") @RequestBody
+    public Result<?> sendCode(@Parameter(description = "用户信息") @RequestBody
                                                    @Validated(AuthValidGroup.Phone.class)
                                                    AuthUserDTO authUserDTO) {
         return authUserService.sendCode(authUserDTO);

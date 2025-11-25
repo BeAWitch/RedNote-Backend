@@ -1,26 +1,38 @@
-/*
 package org.rednote.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONUtil;
+import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import lombok.RequiredArgsConstructor;
 import org.rednote.domain.dto.NoteDTO;
 import org.rednote.domain.entity.WebAlbumNoteRelation;
 import org.rednote.domain.entity.WebComment;
 import org.rednote.domain.entity.WebCommentSync;
 import org.rednote.domain.entity.WebLikeOrCollect;
-import org.rednote.domain.entity.WebNavbar;
 import org.rednote.domain.entity.WebNote;
 import org.rednote.domain.entity.WebTag;
 import org.rednote.domain.entity.WebTagNoteRelation;
 import org.rednote.domain.entity.WebUser;
 import org.rednote.domain.vo.NoteVO;
 import org.rednote.enums.ResultCodeEnum;
+import org.rednote.exception.RedNoteException;
+import org.rednote.mapper.WebAlbumNoteRelationMapper;
+import org.rednote.mapper.WebCommentMapper;
+import org.rednote.mapper.WebCommentSyncMapper;
+import org.rednote.mapper.WebLikeOrCollectMapper;
 import org.rednote.mapper.WebNoteMapper;
+import org.rednote.mapper.WebTagMapper;
+import org.rednote.mapper.WebTagNoteRelationMapper;
 import org.rednote.mapper.WebUserMapper;
+import org.rednote.service.IWebFollowService;
 import org.rednote.service.IWebNoteService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.rednote.service.IWebOssService;
+import org.rednote.utils.UserHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -33,130 +45,83 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+// TODO 消息队列
 @Service
+@RequiredArgsConstructor
 public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> implements IWebNoteService {
 
-    @Autowired
-    IWebUserService userService;
-    @Autowired
-    private WebUserMapper userMapper;
-    @Autowired
-    IWebTagNoteRelationService tagNoteRelationService;
-    @Autowired
-    IWebTagService tagService;
-    @Autowired
-    IWebNavbarService categoryService;
-    @Autowired
-    IWebEsNoteService esNoteService;
-    @Autowired
-    IWebFollowService followerService;
-    @Autowired
-    IWebLikeOrCollectService likeOrCollectionService;
-    @Autowired
-    IWebCommentService commentService;
-    @Autowired
-    IWebCommentSyncService commentSyncService;
-    @Autowired
-    IWebAlbumNoteRelationService albumNoteRelationService;
-    @Autowired
-    private IWebOssService ossService;
-    @Autowired
-    WebNoteMapper noteMapper;
-
-    @NotNull
-    private StringBuilder getTags(WebNote note, NoteDTO noteDTO) {
-        List<String> tagList = noteDTO.getTagList();
-        List<WebTagNoteRelation> tagNoteRelationList = new ArrayList<>();
-        List<WebTag> tagList1 = tagService.list();
-        Map<String, WebTag> tagMap = tagList1.stream().collect(Collectors.toMap(WebTag::getTitle, tag -> tag));
-        StringBuilder tags = new StringBuilder();
-        if (!tagList.isEmpty()) {
-            for (String tag : tagList) {
-                WebTagNoteRelation tagNoteRelation = new WebTagNoteRelation();
-                if (tagMap.containsKey(tag)) {
-                    WebTag tagModel = tagMap.get(tag);
-                    tagNoteRelation.setTid(String.valueOf(tagModel.getId()));
-                } else {
-                    WebTag model = new WebTag();
-                    model.setTitle(tag);
-                    model.setLikeCount(1L);
-                    tagService.save(model);
-                    tagNoteRelation.setTid(String.valueOf(model.getId()));
-                }
-                tagNoteRelation.setNid(String.valueOf(note.getId()));
-                tagNoteRelationList.add(tagNoteRelation);
-                tags.append(tag);
-            }
-            tagNoteRelationService.saveBatch(tagNoteRelationList);
-        }
-        return tags;
-    }
-
-    */
-/**
+    private final WebUserMapper userMapper;
+    private final WebTagNoteRelationMapper tagNoteRelationMapper;
+    private final WebTagMapper tagMapper;
+    private final IWebFollowService followService;
+    private final WebLikeOrCollectMapper likeOrCollectMapper;
+    private final WebCommentMapper commentMapper;
+    private final WebCommentSyncMapper commentSyncMapper;
+    private final WebAlbumNoteRelationMapper albumNoteRelationMapper;
+    private final IWebOssService ossService;
+    
+    /**
      * 获取笔记
      *
      * @param noteId 笔记ID
-     *//*
-
+     */
     @Override
     public NoteVO getNoteById(String noteId) {
         WebNote note = this.getById(noteId);
         if (note == null) {
-            throw new HongshuException(ResultCodeEnum.FAIL);
+            throw new RedNoteException(ResultCodeEnum.FAIL);
         }
         note.setViewCount(note.getViewCount() + 1);
-        WebUser user = userService.getById(note.getUid());
-        NoteVO noteVo = ConvertUtils.sourceToTarget(note, NoteVO.class);
+        WebUser user = userMapper.selectById(note.getUid());
+        NoteVO noteVo = BeanUtil.copyProperties(note, NoteVO.class);
         noteVo.setUsername(user.getUsername())
                 .setAvatar(user.getAvatar())
                 .setTime(note.getUpdateTime().getTime());
 
-        boolean follow = followerService.isFollow(String.valueOf(user.getId()));
+        boolean follow = followService.isFollow(user.getId());
         noteVo.setIsFollow(follow);
 
-        String currentUid = AuthContextHolder.getUserId();
-        List<WebLikeOrCollect> likeOrCollectionList = likeOrCollectionService.list(new QueryWrapper<WebLikeOrCollect>().eq("like_or_collection_id", noteId).eq("uid", currentUid));
+        String currentUid = UserHolder.getUserId();
+        List<WebLikeOrCollect> likeOrCollectionList =
+                likeOrCollectMapper.selectList(new QueryWrapper<WebLikeOrCollect>()
+                .eq("like_or_collection_id", noteId)
+                .eq("uid", currentUid));
 
         Set<Integer> types = likeOrCollectionList.stream().map(WebLikeOrCollect::getType).collect(Collectors.toSet());
         noteVo.setIsLike(types.contains(1));
         noteVo.setIsCollection(types.contains(3));
 
-
         //得到标签
-        List<WebTagNoteRelation> tagNoteRelationList = tagNoteRelationService.list(new QueryWrapper<WebTagNoteRelation>().eq("nid", noteId));
+        List<WebTagNoteRelation> tagNoteRelationList =
+                tagNoteRelationMapper.selectList(new QueryWrapper<WebTagNoteRelation>().eq("nid", noteId));
         List<String> tids = tagNoteRelationList.stream().map(WebTagNoteRelation::getTid).collect(Collectors.toList());
 
         if (!tids.isEmpty()) {
-            List<WebTag> tagList = tagService.listByIds(tids);
+            List<WebTag> tagList = tagMapper.selectBatchIds(tids);
             noteVo.setTagList(tagList);
         }
 
-        this.updateById(note);
         return noteVo;
     }
-
-    */
-/**
+    
+    /**
      * 新增笔记
      *
      * @param noteData 笔记对象
      * @param files    图片文件
-     *//*
-
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public String saveNoteByDTO(String noteData, MultipartFile[] files) {
-
-        String currentUid = AuthContextHolder.getUserId();
+        String currentUid = UserHolder.getUserId();
         // 更新用户笔记数量
         WebUser user = userMapper.selectById(currentUid);
         user.setTrendCount(user.getTrendCount() + 1);
         userMapper.updateById(user);
 
         // 保存笔记
-        NoteDTO noteDTO = JSONUtil.toBean(noteData, NoteDTO.class);
-        WebNote note = ConvertUtils.sourceToTarget(noteDTO, WebNote.class);
+        NoteDTO noteDTO = JSON.parseObject(noteData, NoteDTO.class);
+        WebNote note = BeanUtil.copyProperties(noteDTO, WebNote.class);
         note.setUid(currentUid);
         note.setAuthor(user.getUsername());
         note.setAuditStatus("0");
@@ -180,10 +145,12 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
         note.setNoteCover(urlArr[0]);
         this.save(note);
 
+        // 绑定标签关系
+        bindTagsToNote(note, noteDTO);
+
         return note.getId();
     }
-
-
+    
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteNoteByIds(List<String> noteIds) {
@@ -191,7 +158,7 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
         // TODO 这里需要优化，数据一致性问题
         noteList.forEach(item -> {
             String noteId = item.getId();
-            esNoteService.deleteNote(noteId);
+            removeById(noteId);
 
             String urls = item.getUrls();
             JSONArray objects = JSONUtil.parseArray(urls);
@@ -203,18 +170,24 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
             ossService.batchDelete(pathArr);
             // TODO 可以使用多线程优化，
             // 删除点赞图片，评论，标签关系，收藏关系
-            likeOrCollectionService.remove(new QueryWrapper<WebLikeOrCollect>().eq("like_or_collection_id", noteId));
-            List<WebComment> commentList = commentService.list(new QueryWrapper<WebComment>().eq("nid", noteId));
-            List<WebCommentSync> commentSyncList = commentSyncService.list(new QueryWrapper<WebCommentSync>().eq("nid", noteId));
+            likeOrCollectMapper.delete(new QueryWrapper<WebLikeOrCollect>()
+                    .eq("like_or_collection_id", noteId));
+            List<WebComment> commentList =
+                    commentMapper.selectList(new QueryWrapper<WebComment>().eq("nid", noteId));
+            List<WebCommentSync> commentSyncList =
+                    commentSyncMapper.selectList(new QueryWrapper<WebCommentSync>().eq("nid", noteId));
             List<String> cids = commentList.stream().map(WebComment::getId).collect(Collectors.toList());
             List<String> cids2 = commentSyncList.stream().map(WebCommentSync::getId).collect(Collectors.toList());
-            if (!cids.isEmpty()) {
-                likeOrCollectionService.remove(new QueryWrapper<WebLikeOrCollect>().in("like_or_collection_id", cids).eq("type", 2));
+            if (CollUtil.isNotEmpty(cids)) {
+                likeOrCollectMapper.delete(new QueryWrapper<WebLikeOrCollect>()
+                        .in("like_or_collection_id", cids));
+                commentMapper.deleteByIds(cids);
             }
-            commentService.removeBatchByIds(cids);
-            commentSyncService.removeBatchByIds(cids2);
-            tagNoteRelationService.remove(new QueryWrapper<WebTagNoteRelation>().eq("nid", noteId));
-            albumNoteRelationService.remove(new QueryWrapper<WebAlbumNoteRelation>().eq("nid", noteId));
+            if (CollUtil.isNotEmpty(cids2)) {
+                commentSyncMapper.deleteByIds(cids2);
+            }
+            tagNoteRelationMapper.delete(new QueryWrapper<WebTagNoteRelation>().eq("nid", noteId));
+            albumNoteRelationMapper.delete(new QueryWrapper<WebAlbumNoteRelation>().eq("nid", noteId));
         });
         this.removeBatchByIds(noteIds);
     }
@@ -222,69 +195,66 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updateNoteByDTO(String noteData, MultipartFile[] files) {
-        String currentUid = AuthContextHolder.getUserId();
-        NoteDTO noteDTO = JSONUtil.toBean(noteData, NoteDTO.class);
-        WebNote note = ConvertUtils.sourceToTarget(noteDTO, WebNote.class);
-        note.setUid(currentUid);
-        boolean flag = this.updateById(note);
-        if (!flag) {
-            return;
-        }
-        WebNavbar category = categoryService.getById(note.getCid());
-        WebNavbar parentCategory = categoryService.getById(note.getCpid());
-        List<String> dataList = null;
-        try {
-            dataList = ossService.saveBatch(files);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        // 删除原来图片的地址
-        String urls = note.getUrls();
-        JSONArray objects = JSONUtil.parseArray(urls);
-        Object[] array = objects.toArray();
-        List<String> pathArr = new ArrayList<>();
-        for (Object o : array) {
-            pathArr.add((String) o);
-        }
-        ossService.batchDelete(pathArr);
+        String currentUid = UserHolder.getUserId();
+        NoteDTO noteDTO = JSON.parseObject(noteData, NoteDTO.class);
 
-        String[] urlArr = Objects.requireNonNull(dataList).toArray(new String[dataList.size()]);
-        String newUrls = JSONUtil.toJsonStr(urlArr);
-        note.setUrls(newUrls);
-        note.setNoteCover(urlArr[0]);
+        // 查询原笔记信息
+        WebNote originalNote = this.getById(noteDTO.getId());
+        if (originalNote == null) {
+            throw new RuntimeException("笔记不存在");
+        }
+        if (!Objects.equals(currentUid, originalNote.getUid())) {
+            throw new RuntimeException("非作者修改笔记");
+        }
+
+        // 上传文件
+        List<String> newFileUrls = null;
+        if (files != null && files.length > 0) {
+            try {
+                newFileUrls = ossService.saveBatch(files);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        // 设置新文件 URL
+        WebNote note = BeanUtil.copyProperties(noteDTO, WebNote.class);
+        if (CollUtil.isNotEmpty(newFileUrls)) {
+            String newUrls = JSONUtil.toJsonStr(newFileUrls);
+            note.setUrls(newUrls);
+            note.setNoteCover(newFileUrls.get(0));
+        }
+
+        // 更新信息
         note.setAuditStatus("0");
         note.setTime(System.currentTimeMillis());
-        note.setNoteType("0");
+        note.setNoteType(String.valueOf(noteDTO.getType()));
         note.setUpdateTime(new Date());
-        this.updateById(note);
+
+        // 更新笔记
+        boolean updateSuccess = this.updateById(note);
+        if (!updateSuccess) {
+            throw new RuntimeException("更新笔记失败");
+        }
+
+        // 删除旧图
+        if (StrUtil.isNotBlank(originalNote.getUrls())) {
+            JSONArray objects = JSONUtil.parseArray(originalNote.getUrls());
+            List<String> oldFileUrls = objects.toList(String.class);
+            if (!oldFileUrls.isEmpty()) {
+                ossService.batchDelete(oldFileUrls);
+            }
+        }
 
         // 删除原来的标签绑定关系
-        tagNoteRelationService.remove(new QueryWrapper<WebTagNoteRelation>().eq("nid", note.getId()));
+        tagNoteRelationMapper.delete(new QueryWrapper<WebTagNoteRelation>().eq("nid", note.getId()));
         // 重新绑定标签关系
-        StringBuilder tags = getTags(note, noteDTO);
-
-        esNoteService.deleteNote(note.getId());
-
-//        WebUser user = userService.getById(currentUid);
-//
-//        NoteSearchVo noteSearchVo = ConvertUtils.sourceToTarget(note, NoteSearchVo.class);
-//        noteSearchVo.setUsername(user.getUsername())
-//                .setAvatar(user.getAvatar())
-//                .setCategoryName(category.getTitle())
-//                .setCategoryParentName(parentCategory.getTitle())
-//                .setTags(tags.toString())
-//                .setTime(note.getUpdateTime().getTime());
-//        esNoteService.updateNote(noteSearchVo);
-    }
-
-    @Override
-    public Page<NoteVO> getHotPage(long currentPage, long pageSize) {
-        return null;
+        bindTagsToNote(note, noteDTO);
     }
 
     @Override
     public boolean pinnedNote(String noteId) {
-        String currentUid = AuthContextHolder.getUserId();
+        String currentUid = UserHolder.getUserId();
         WebNote note = this.getById(noteId);
         if ("1".equals(note.getPinned())) {
             note.setPinned("0");
@@ -292,12 +262,44 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
             List<WebNote> noteList = this.list(new QueryWrapper<WebNote>().eq("uid", currentUid));
             long count = noteList.stream().filter(item -> "1".equals(item.getPinned())).count();
             if (count >= 3) {
-                throw new HongshuException("最多只能置顶3个笔记");
+                throw new RedNoteException("最多只能置顶3个笔记");
             }
             note.setPinned("1");
             note.setUpdateTime(new Date());
         }
         return this.updateById(note);
     }
+
+
+    /**
+     * 绑定标签于笔记，并创建不存在的标签
+     *
+     * @param note
+     * @param noteDTO
+     */
+    private void bindTagsToNote(WebNote note, NoteDTO noteDTO) {
+        List<String> tagList = noteDTO.getTagList();
+        List<WebTagNoteRelation> tagNoteRelationList = new ArrayList<>();
+        Map<String, WebTag> allTags = tagMapper.selectList(new QueryWrapper<>())
+                .stream().collect(Collectors.toMap(WebTag::getTitle, tag -> tag));
+
+        if (CollUtil.isNotEmpty(tagList)) {
+            for (String tag : tagList) {
+                WebTagNoteRelation tagNoteRelation = new WebTagNoteRelation();
+                if (allTags.containsKey(tag)) {
+                    WebTag tagModel = allTags.get(tag);
+                    tagNoteRelation.setTid(tagModel.getId());
+                } else {
+                    WebTag model = new WebTag();
+                    model.setTitle(tag);
+                    model.setLikeCount(1L);
+                    tagMapper.insertOrUpdate(model);
+                    tagNoteRelation.setTid(model.getId());
+                }
+                tagNoteRelation.setNid(note.getId());
+                tagNoteRelationList.add(tagNoteRelation);
+            }
+            tagNoteRelationMapper.insertOrUpdate(tagNoteRelationList);
+        }
+    }
 }
-*/

@@ -10,18 +10,10 @@ import java.io.Serializable;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(name = "搜索记录 VO")
 public class RecordSearchVO implements Serializable {
-    @Schema(description = "用户 ID")
-    private String uid;
-
     @Schema(description = "内容")
     private String content;
-
-    @Schema(description = "高亮内容")
-    private String highlightContent;
-
     @Schema(description = "搜索次数")
     private Long searchCount;
-
     @Schema(description = "时间")
     private Long time;
 }

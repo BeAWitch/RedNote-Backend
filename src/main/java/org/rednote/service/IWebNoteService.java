@@ -1,6 +1,5 @@
 package org.rednote.service;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.rednote.domain.entity.WebNote;
 import org.rednote.domain.vo.NoteVO;
@@ -42,14 +41,6 @@ public interface IWebNoteService extends IService<WebNote> {
      * @param files    图片文件
      */
     void updateNoteByDTO(String noteData, MultipartFile[] files);
-
-    /**
-     * 获取热门笔记
-     *
-     * @param currentPage 当前页
-     * @param pageSize    分页数
-     */
-    Page<NoteVO> getHotPage(long currentPage, long pageSize);
 
     /**
      * 置顶笔记

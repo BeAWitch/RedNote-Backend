@@ -30,6 +30,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 // TODO
+//  Redis 缓存
 //  智能推荐
 //  es
 

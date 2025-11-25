@@ -19,7 +19,8 @@ public class MvcConfig implements WebMvcConfigurer {
         // 登录拦截器
         registry.addInterceptor(new LoginInterceptor())
                 .excludePathPatterns(
-                        "/web/auth/**",
+                        "/web/auth/**",      // 登录
+                        "/uploads/**",       // 本地文件访问路径
                         "/swagger-ui.html",
                         "/swagger-ui/**",
                         "/v3/api-docs/**"

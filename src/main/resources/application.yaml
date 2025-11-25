@@ -40,3 +40,12 @@ springdoc:
     disable-swagger-default-url: true
     display-request-duration: true
     packages-to-scan: org.rednote.controller
+
+# Oss配置
+oss:
+  type: 0 # 0：是本地存储
+
+# 文件上传路径
+file:
+  upload:
+    path: D:/study/dev/temp/
