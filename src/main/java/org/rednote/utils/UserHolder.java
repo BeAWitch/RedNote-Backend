@@ -3,13 +3,13 @@ package org.rednote.utils;
 
 public class UserHolder {
 
-    private static final ThreadLocal<String> userId = new ThreadLocal<>();
+    private static final ThreadLocal<Long> userId = new ThreadLocal<>();
 
-    public static void setUserId(String _userId) {
+    public static void setUserId(Long _userId) {
         userId.set(_userId);
     }
 
-    public static String getUserId() {
+    public static Long getUserId() {
         return userId.get();
     }
 

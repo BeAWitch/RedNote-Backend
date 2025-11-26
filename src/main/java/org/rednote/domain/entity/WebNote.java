@@ -1,5 +1,6 @@
 package org.rednote.domain.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 
 import lombok.Data;
@@ -35,25 +36,26 @@ public class WebNote extends BaseEntity {
     /**
      * 用户 ID
      */
-    private String uid;
+    private Long uid;
 
     /**
      * 作者
      */
+    @TableField(exist = false)
     private String author;
 
     /**
      * 笔记二级分类 ID
      */
-    private String cid;
+    private Long cid;
 
     /**
      * 笔记一级分类 ID
      */
-    private String cpid;
+    private Long cpid;
 
     /**
-     * 笔记 urls
+     * 图片 urls，json 格式
      */
     private String urls;
 
@@ -63,29 +65,19 @@ public class WebNote extends BaseEntity {
     private Integer count;
 
     /**
-     * 排序
-     */
-    private Integer sort;
-
-    /**
      * 是否置顶
      */
-    private String pinned;
-
-    /**
-     * 笔记状态
-     */
-    private String status;
+    private Integer pinned;
 
     /**
      * 审核状态（0-未过审，1-过审）
      */
-    private String auditStatus;
+    private Integer auditStatus;
 
     /**
      * 笔记类型（0-图片，1-视频）
      */
-    private String noteType;
+    private Integer noteType;
 
     /**
      * 点赞次数
@@ -106,9 +98,4 @@ public class WebNote extends BaseEntity {
      * 浏览次数
      */
     private Long viewCount;
-
-    /**
-     * 时间戳
-     */
-    private Long time;
 }

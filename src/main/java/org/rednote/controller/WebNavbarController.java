@@ -23,7 +23,7 @@ public class WebNavbarController {
     @Operation(summary = "获取树形分类数据", description = "获取树形分类数据")
     @GetMapping("getCategoryTreeData")
     public Result<?> getCategoryTreeData() {
-        List<Tree<String>> navbarList = navbarService.getNavbarTreeData();
+        List<Tree<Long>> navbarList = navbarService.getNavbarTreeData();
         return Result.ok(navbarList);
     }
 }

@@ -11,13 +11,13 @@ import lombok.Data;
 public class WebAlbumNoteRelation extends BaseEntity {
 
     /**
-     * 专辑ID
+     * 专辑 ID
      */
-    private String aid;
+    private Long aid;
 
     /**
-     * 笔记ID
+     * 笔记 ID
      */
-    private String nid;
+    private Long nid;
 
 }

@@ -13,9 +13,9 @@ import java.util.List;
 @Schema(name = "笔记 DTO")
 public class NoteDTO implements Serializable {
 
-    @Schema(description = "id")
-    @NotBlank(message = "标题不能为空", groups = UpdateGroup.class)
-    private String id;
+    @Schema(description = "ID")
+    @NotBlank(message = "ID 不能为空", groups = UpdateGroup.class)
+    private Long id;
 
     @Schema(description = "笔记标题")
     @NotBlank(message = "标题不能为空", groups = AddGroup.class)
@@ -31,13 +31,13 @@ public class NoteDTO implements Serializable {
     @Schema(description = "笔记封面高度")
     private Integer noteCoverHeight;
 
-    @Schema(description = "笔记分类")
+    @Schema(description = "笔记分类 ID")
     @NotBlank(message = "二级分类不能为空", groups = AddGroup.class)
-    private String cid;
+    private Long cid;
 
-    @Schema(description = "笔记父分类")
+    @Schema(description = "笔记父分类 ID")
     @NotBlank(message = "一级分类不能为空", groups = AddGroup.class)
-    private String cpid;
+    private Long cpid;
 
     @Schema(description = "笔记图片地址")
     private List<String> urls;

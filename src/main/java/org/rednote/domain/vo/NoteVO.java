@@ -14,7 +14,7 @@ import java.util.List;
 public class NoteVO implements Serializable {
 
     @Schema(description = "ID")
-    private String id;
+    private Long id;
 
     @Schema(description = "标题")
     private String title;
@@ -26,7 +26,7 @@ public class NoteVO implements Serializable {
     private String noteCover;
 
     @Schema(description = "用户 ID")
-    private String uid;
+    private Long uid;
 
     @Schema(description = "用户名")
     private String username;
@@ -38,10 +38,10 @@ public class NoteVO implements Serializable {
     private String urls;
 
     @Schema(description = "分类 ID")
-    private String cid;
+    private Long cid;
 
     @Schema(description = "父分类 ID")
-    private String cpid;
+    private Long cpid;
 
     @Schema(description = "图片数量")
     private Integer count;

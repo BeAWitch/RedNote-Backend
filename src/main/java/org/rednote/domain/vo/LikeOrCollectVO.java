@@ -12,13 +12,13 @@ import java.io.Serializable;
 public class LikeOrCollectVO implements Serializable {
 
     @Schema(description = "项目 ID")
-    private String itemId;
+    private Long itemId;
 
     @Schema(description = "项目封面")
     private String itemCover;
 
     @Schema(description = "用户 ID")
-    private String uid;
+    private Long uid;
 
     @Schema(description = "用户名")
     private String username;

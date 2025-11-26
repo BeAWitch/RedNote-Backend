@@ -81,7 +81,7 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
         boolean follow = followService.isFollow(user.getId());
         noteVo.setIsFollow(follow);
 
-        String currentUid = UserHolder.getUserId();
+        Long currentUid = UserHolder.getUserId();
         List<WebLikeOrCollect> likeOrCollectionList =
                 likeOrCollectMapper.selectList(new QueryWrapper<WebLikeOrCollect>()
                 .eq("like_or_collection_id", noteId)
@@ -94,7 +94,7 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
         //得到标签
         List<WebTagNoteRelation> tagNoteRelationList =
                 tagNoteRelationMapper.selectList(new QueryWrapper<WebTagNoteRelation>().eq("nid", noteId));
-        List<String> tids = tagNoteRelationList.stream().map(WebTagNoteRelation::getTid).collect(Collectors.toList());
+        List<Long> tids = tagNoteRelationList.stream().map(WebTagNoteRelation::getTid).collect(Collectors.toList());
 
         if (!tids.isEmpty()) {
             List<WebTag> tagList = tagMapper.selectBatchIds(tids);
@@ -112,8 +112,8 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public String saveNoteByDTO(String noteData, MultipartFile[] files) {
-        String currentUid = UserHolder.getUserId();
+    public Long saveNoteByDTO(String noteData, MultipartFile[] files) {
+        Long currentUid = UserHolder.getUserId();
         // 更新用户笔记数量
         WebUser user = userMapper.selectById(currentUid);
         user.setTrendCount(user.getTrendCount() + 1);
@@ -124,12 +124,8 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
         WebNote note = BeanUtil.copyProperties(noteDTO, WebNote.class);
         note.setUid(currentUid);
         note.setAuthor(user.getUsername());
-        note.setAuditStatus("0");
-        note.setNoteType("0");
-        note.setCreator(user.getUsername());
-        note.setTime(System.currentTimeMillis());
-        note.setCreateTime(new Date());
-        note.setUpdateTime(new Date());
+        note.setAuditStatus(0);
+        note.setNoteType(0);
 
         // 批量上传图片
         List<String> dataList = null;
@@ -157,7 +153,7 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
         List<WebNote> noteList = this.listByIds(noteIds);
         // TODO 这里需要优化，数据一致性问题
         noteList.forEach(item -> {
-            String noteId = item.getId();
+            Long noteId = item.getId();
             removeById(noteId);
 
             String urls = item.getUrls();
@@ -176,8 +172,8 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
                     commentMapper.selectList(new QueryWrapper<WebComment>().eq("nid", noteId));
             List<WebCommentSync> commentSyncList =
                     commentSyncMapper.selectList(new QueryWrapper<WebCommentSync>().eq("nid", noteId));
-            List<String> cids = commentList.stream().map(WebComment::getId).collect(Collectors.toList());
-            List<String> cids2 = commentSyncList.stream().map(WebCommentSync::getId).collect(Collectors.toList());
+            List<Long> cids = commentList.stream().map(WebComment::getId).collect(Collectors.toList());
+            List<Long> cids2 = commentSyncList.stream().map(WebCommentSync::getId).collect(Collectors.toList());
             if (CollUtil.isNotEmpty(cids)) {
                 likeOrCollectMapper.delete(new QueryWrapper<WebLikeOrCollect>()
                         .in("like_or_collection_id", cids));
@@ -195,7 +191,7 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updateNoteByDTO(String noteData, MultipartFile[] files) {
-        String currentUid = UserHolder.getUserId();
+        Long currentUid = UserHolder.getUserId();
         NoteDTO noteDTO = JSON.parseObject(noteData, NoteDTO.class);
 
         // 查询原笔记信息
@@ -226,9 +222,8 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
         }
 
         // 更新信息
-        note.setAuditStatus("0");
-        note.setTime(System.currentTimeMillis());
-        note.setNoteType(String.valueOf(noteDTO.getType()));
+        note.setAuditStatus(0);
+        note.setNoteType(noteDTO.getType());
         note.setUpdateTime(new Date());
 
         // 更新笔记
@@ -254,18 +249,17 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
 
     @Override
     public boolean pinnedNote(String noteId) {
-        String currentUid = UserHolder.getUserId();
+        Long currentUid = UserHolder.getUserId();
         WebNote note = this.getById(noteId);
-        if ("1".equals(note.getPinned())) {
-            note.setPinned("0");
+        if (note.getPinned() == 1) {
+            note.setPinned(0);
         } else {
             List<WebNote> noteList = this.list(new QueryWrapper<WebNote>().eq("uid", currentUid));
-            long count = noteList.stream().filter(item -> "1".equals(item.getPinned())).count();
+            long count = noteList.stream().filter(item -> item.getPinned() == 1).count();
             if (count >= 3) {
                 throw new RedNoteException("最多只能置顶3个笔记");
             }
-            note.setPinned("1");
-            note.setUpdateTime(new Date());
+            note.setPinned(1);
         }
         return this.updateById(note);
     }

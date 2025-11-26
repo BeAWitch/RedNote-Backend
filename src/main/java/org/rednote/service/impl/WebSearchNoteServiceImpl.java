@@ -1,5 +1,6 @@
 package org.rednote.service.impl;
 
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -64,17 +65,14 @@ public class WebSearchNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote
             queryWrapper.and(wrapper -> wrapper
                     .like(WebNote::getTitle, keyword)
                     .or().like(WebNote::getContent, keyword)
-                    .or().like(WebNote::getAuthor, keyword)
             );
         }
 
         // 分类条件查询
-        if (StrUtil.isNotBlank(searchNoteDTO.getCpid()) && StrUtil.isNotBlank(searchNoteDTO.getCid())) {
-            queryWrapper.eq(WebNote::getCid, searchNoteDTO.getCid())
-                    .eq(WebNote::getCpid, searchNoteDTO.getCpid());
-        } else if (StrUtil.isNotBlank(searchNoteDTO.getCpid())) {
+        if (ObjectUtil.isNotEmpty(searchNoteDTO.getCpid())) {
             queryWrapper.eq(WebNote::getCpid, searchNoteDTO.getCpid());
-        } else if (StrUtil.isNotBlank(searchNoteDTO.getCid())) {
+        }
+        if (ObjectUtil.isNotEmpty(searchNoteDTO.getCid())) {
             queryWrapper.eq(WebNote::getCid, searchNoteDTO.getCid());
         }
 
@@ -82,7 +80,7 @@ public class WebSearchNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote
         if (searchNoteDTO.getType() == 1) {
             queryWrapper.orderByDesc(WebNote::getLikeCount);
         } else if (searchNoteDTO.getType() == 2) {
-            queryWrapper.orderByDesc(WebNote::getTime);
+            queryWrapper.orderByDesc(WebNote::getUpdateTime);
         }
 
         // 只查询审核通过的笔记
@@ -197,10 +195,8 @@ public class WebSearchNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote
         vo.setUrls(note.getUrls());
         vo.setPinned(note.getPinned());
         vo.setAuditStatus(note.getAuditStatus());
-        vo.setStatus(note.getStatus());
         vo.setLikeCount(note.getLikeCount());
         vo.setViewCount(note.getViewCount());
-        vo.setTime(note.getTime());
         vo.setIsLoading(false);
 
         // 填充用户信息
@@ -221,8 +217,8 @@ public class WebSearchNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote
     /**
      * 填充用户信息
      */
-    private void fillUserInfo(NoteSearchVO vo, String uid) {
-        if (StrUtil.isBlank(uid)) return;
+    private void fillUserInfo(NoteSearchVO vo, Long uid) {
+        if (ObjectUtil.isEmpty(uid)) return;
 
         WebUser user = userMapper.selectById(uid);
         if (user != null) {
@@ -234,9 +230,9 @@ public class WebSearchNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote
     /**
      * 填充分类信息
      */
-    private void fillCategoryInfo(NoteSearchVO vo, String cid, String cpid) {
+    private void fillCategoryInfo(NoteSearchVO vo, Long cid, Long cpid) {
         // 填充二级分类名称
-        if (StrUtil.isNotBlank(cid)) {
+        if (ObjectUtil.isNotEmpty(cid)) {
             WebNavbar category = categoryMapper.selectById(cid);
             if (category != null) {
                 vo.setCategoryName(category.getTitle());
@@ -244,7 +240,7 @@ public class WebSearchNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote
         }
 
         // 填充一级分类名称
-        if (StrUtil.isNotBlank(cpid)) {
+        if (ObjectUtil.isNotEmpty(cpid)) {
             WebNavbar parentCategory = categoryMapper.selectById(cpid);
             if (parentCategory != null) {
                 vo.setCategoryParentName(parentCategory.getTitle());
@@ -255,8 +251,8 @@ public class WebSearchNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote
     /**
      * 填充标签信息
      */
-    private void fillTagsInfo(NoteSearchVO vo, String noteId) {
-        if (StrUtil.isBlank(noteId)) return;
+    private void fillTagsInfo(NoteSearchVO vo, Long noteId) {
+        if (ObjectUtil.isEmpty(noteId)) return;
 
         // 查询笔记关联的标签 ID 列表
         LambdaQueryWrapper<WebTagNoteRelation> relationWrapper = new LambdaQueryWrapper<>();
@@ -269,7 +265,7 @@ public class WebSearchNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote
         }
 
         // 提取标签 ID 列表
-        List<String> tagIds = relations.stream()
+        List<Long> tagIds = relations.stream()
                 .map(WebTagNoteRelation::getTid)
                 .toList();
 
@@ -290,11 +286,11 @@ public class WebSearchNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote
     /**
      * 填充点赞状态
      */
-    private void fillLikeStatus(NoteSearchVO vo, String noteId) {
+    private void fillLikeStatus(NoteSearchVO vo, Long noteId) {
         // 获取当前登录用户 ID
-        String currentUserId = UserHolder.getUserId();
+        Long currentUserId = UserHolder.getUserId();
 
-        if (StrUtil.isNotBlank(currentUserId) && StrUtil.isNotBlank(noteId)) {
+        if (ObjectUtil.isNotEmpty(currentUserId) && ObjectUtil.isNotEmpty(noteId)) {
             LambdaQueryWrapper<WebUserNoteRelation> likeWrapper = new LambdaQueryWrapper<>();
             likeWrapper.eq(WebUserNoteRelation::getNid, noteId)
                     .eq(WebUserNoteRelation::getUid, currentUserId);

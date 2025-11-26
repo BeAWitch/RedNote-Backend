@@ -1,5 +1,6 @@
 package org.rednote.domain.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
@@ -11,27 +12,23 @@ import lombok.Data;
 public class WebLikeOrCollect extends BaseEntity {
 
     /**
-     * 点赞用户ID
+     * 点赞用户 ID
      */
-    private String uid;
+    private Long uid;
 
     /**
-     * 点赞和收藏的ID（可能是图片/评论）
+     * 点赞和收藏的 ID（可能是图片/评论）
      */
-    private String likeOrCollectionId;
+    private Long likeOrCollectionId;
 
     /**
-     * 点赞和收藏通知的用户ID
+     * 点赞和收藏通知的用户 ID
      */
-    private String publishUid;
+    @TableField(exist = false)
+    private Long publishUid;
 
     /**
      * 点赞和收藏类型（1：点赞图片 2：点赞评论 3：收藏图片 4：收藏专辑）
      */
     private Integer type;
-
-    /**
-     * 时间戳
-     */
-    private long timestamp;
 }

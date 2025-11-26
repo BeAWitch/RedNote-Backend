@@ -24,12 +24,12 @@ public class WebNavbarServiceImpl extends ServiceImpl<WebNavbarMapper, WebNavbar
      * 获取树形分类数据
      */
     @Override
-    public List<Tree<String>> getNavbarTreeData() {
+    public List<Tree<Long>> getNavbarTreeData() {
         List<WebNavbar> list = this.list(new QueryWrapper<WebNavbar>().orderByAsc("sort"));
         return convertToTree(list);
     }
 
-    private List<Tree<String>> convertToTree(List<WebNavbar> list) {
+    private List<Tree<Long>> convertToTree(List<WebNavbar> list) {
         if (CollUtil.isEmpty(list)) {
             return new ArrayList<>();
         }
@@ -44,14 +44,12 @@ public class WebNavbarServiceImpl extends ServiceImpl<WebNavbarMapper, WebNavbar
         config.setWeightKey("sort");
 
         // 转树
-        List<Tree<String>> treeList = TreeUtil.build(list, "0", config, ((object, treeNode) -> {
+        return TreeUtil.build(list, 0L, config, ((object, treeNode) -> {
             treeNode.putExtra("id", object.getId());
             treeNode.putExtra("pid", object.getPid());
             treeNode.putExtra("title", object.getTitle());
             treeNode.putExtra("likeCount", object.getLikeCount());
             treeNode.putExtra("sort", object.getSort());
         }));
-
-        return treeList;
     }
 }

@@ -20,9 +20,9 @@ public class WebNavbar extends BaseEntity {
     private String title;
 
     /**
-     * 父级ID
+     * 父级 ID
      */
-    private String pid;
+    private Long pid;
 
     /**
      * 分类描述
@@ -38,11 +38,6 @@ public class WebNavbar extends BaseEntity {
      * 排序
      */
     private Integer sort;
-
-    /**
-     * 状态
-     */
-    private String status;
 
     /**
      * 分类封面

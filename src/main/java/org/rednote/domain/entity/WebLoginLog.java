@@ -4,39 +4,25 @@ package org.rednote.domain.entity;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
-import java.util.Date;
-
 /**
  * 访问记录表
  */
 @TableName("web_login_log")
 @Data
-public class WebLoginLog {
-
-    private static final long serialVersionUID = 1L;
+public class WebLoginLog extends BaseEntity{
 
     /**
-     * 主键ID
-     */
-    private Long id;
-
-    /**
-     * 用户ID
+     * 用户 ID
      */
     private Long uid;
 
     /**
-     * 用户账号
+     * 登录状态（0-成功，1-失败）
      */
-    private String username;
+    private Integer status;
 
     /**
-     * 登录状态 0成功 1失败
-     */
-    private String status;
-
-    /**
-     * 登录IP地址
+     * 登录 IP 地址
      */
     private String ipaddr;
 
@@ -59,19 +45,4 @@ public class WebLoginLog {
      * 提示消息
      */
     private String msg;
-
-    /**
-     * 访问时间
-     */
-    private Date loginTime;
-
-    /**
-     * 创建时间
-     */
-    private Date createTime;
-
-    /**
-     * 更新时间
-     */
-    private Date updateTime;
 }

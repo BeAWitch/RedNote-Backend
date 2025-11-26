@@ -12,13 +12,11 @@ import java.io.Serializable;
 @Schema(name = "浏览记录")
 public class BrowseRecordDTO implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+    @Schema(description = "用户 ID")
+    @NotNull(message = "uid 不能为空", groups = DefaultGroup.class)
+    private Long uid;
 
-    @Schema(description = "用户 id")
-    @NotNull(message = "uid不能为空", groups = DefaultGroup.class)
-    private String uid;
-
-    @Schema(description = "笔记 id")
+    @Schema(description = "笔记 ID")
     @NotNull(message = "笔记不能为空", groups = DefaultGroup.class)
-    private String nid;
+    private Long nid;
 }

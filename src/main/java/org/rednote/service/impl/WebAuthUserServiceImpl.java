@@ -158,8 +158,11 @@ public class WebAuthUserServiceImpl extends ServiceImpl<WebUserMapper, WebUser> 
         }
         String pwd = SecureUtil.md5(authUserDTO.getPassword());
         WebUser user;
-        if (StrUtil.isBlank(authUserDTO.getId())) {
-            user = this.getOne(new QueryWrapper<WebUser>().eq("phone", authUserDTO.getPhone()).or().eq("email", authUserDTO.getEmail()));
+        if (ObjectUtil.isEmpty(authUserDTO.getId())) {
+            user = this.getOne(new QueryWrapper<WebUser>()
+                    .eq("phone", authUserDTO.getPhone())
+                    .or()
+                    .eq("email", authUserDTO.getEmail()));
         } else {
             user = this.getById(authUserDTO.getId());
         }
@@ -193,7 +196,7 @@ public class WebAuthUserServiceImpl extends ServiceImpl<WebUserMapper, WebUser> 
         String token = UUID.randomUUID().toString(true);
         // 存储
         String tokenKey = RedisConstants.LOGIN_USER_KEY + token;
-        stringRedisTemplate.opsForValue().set(tokenKey, authUser.getId());
+        stringRedisTemplate.opsForValue().set(tokenKey, String.valueOf(authUser.getId()));
         // 设置 token 有效期
         stringRedisTemplate.expire(tokenKey, RedisConstants.LOGIN_USER_TTL, TimeUnit.MINUTES);
 

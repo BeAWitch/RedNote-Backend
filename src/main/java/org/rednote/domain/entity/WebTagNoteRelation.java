@@ -11,12 +11,12 @@ import lombok.Data;
 public class WebTagNoteRelation extends BaseEntity {
 
     /**
-     * 笔记ID
+     * 笔记 ID
      */
-    private String nid;
+    private Long nid;
 
     /**
      * 标签ID
      */
-    private String tid;
+    private Long tid;
 }

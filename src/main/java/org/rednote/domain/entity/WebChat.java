@@ -11,14 +11,14 @@ import lombok.Data;
 public class WebChat extends BaseEntity {
 
     /**
-     * 发送方用户ID
+     * 发送方用户 ID
      */
-    private String sendUid;
+    private Long sendUid;
 
     /**
-     * 接收方用户ID
+     * 接收方用户 ID
      */
-    private String acceptUid;
+    private Long acceptUid;
 
     /**
      * 聊天内容
@@ -34,9 +34,4 @@ public class WebChat extends BaseEntity {
      * 信息类型（0：通知 1：文本 2：图片 3：语音 4：视频 5：自定义消息）
      */
     private Integer msgType;
-
-    /**
-     * 时间戳
-     */
-    private long timestamp;
 }

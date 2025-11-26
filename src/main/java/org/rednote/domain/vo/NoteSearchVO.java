@@ -14,7 +14,7 @@ import java.io.Serializable;
 public class NoteSearchVO implements Serializable {
 
     @Schema(description = "ID")
-    private String id;
+    private Long id;
 
     @Schema(description = "标题")
     private String title;
@@ -26,25 +26,25 @@ public class NoteSearchVO implements Serializable {
     private String noteCover;
 
     @Schema(description = "笔记类型")
-    private String noteType;
+    private Integer noteType;
 
     @Schema(description = "笔记封面高度")
     private Integer noteCoverHeight;
 
     @Schema(description = "分类 ID")
-    private String cid;
+    private Long cid;
 
     @Schema(description = "分类名称")
     private String categoryName;
 
     @Schema(description = "父分类 ID")
-    private String cpid;
+    private Long cpid;
 
     @Schema(description = "父分类名称")
     private String categoryParentName;
 
-    @Schema(description = "用户ID")
-    private String uid;
+    @Schema(description = "用户 ID")
+    private Long uid;
 
     @Schema(description = "用户名")
     private String username;
@@ -59,13 +59,13 @@ public class NoteSearchVO implements Serializable {
     private String tags;
 
     @Schema(description = "是否置顶")
-    private String pinned;
+    private Integer pinned;
 
     @Schema(description = "审核状态")
-    private String auditStatus;
+    private Integer auditStatus;
 
     @Schema(description = "状态")
-    private String status;
+    private Integer status;
 
     @Schema(description = "是否点赞")
     private Boolean isLike;

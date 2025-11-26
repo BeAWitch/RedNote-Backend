@@ -10,5 +10,5 @@ public interface IWebFollowService {
      *
      * @param followerId 关注的用户ID
      */
-    boolean isFollow(String followerId);
+    boolean isFollow(Long followerId);
 }

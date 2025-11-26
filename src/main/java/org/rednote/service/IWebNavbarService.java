@@ -14,6 +14,6 @@ public interface IWebNavbarService extends IService<WebNavbar> {
     /**
      * 获取树形分类数据
      */
-    List<Tree<String>> getNavbarTreeData();
+    List<Tree<Long>> getNavbarTreeData();
 
 }

@@ -16,9 +16,9 @@ public class WebAlbum extends BaseEntity {
     private String title;
 
     /**
-     * 用户ID
+     * 用户 ID
      */
-    private String uid;
+    private Long uid;
 
     /**
      * 专辑封面图
@@ -38,7 +38,7 @@ public class WebAlbum extends BaseEntity {
     /**
      * 专辑中笔记数量
      */
-    private Long imgCount;
+    private Long noteCount;
 
     /**
      * 收藏数量

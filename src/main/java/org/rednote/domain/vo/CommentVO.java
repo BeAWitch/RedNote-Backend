@@ -14,13 +14,13 @@ import java.util.List;
 public class CommentVO implements Serializable {
 
     @Schema(description = "ID")
-    private String id;
+    private Long id;
 
     @Schema(description = "父评论 ID")
-    private String pid;
+    private Long pid;
 
     @Schema(description = "笔记 ID")
-    private String nid;
+    private Long nid;
 
     @Schema(description = "笔记标题")
     private String title;
@@ -29,7 +29,7 @@ public class CommentVO implements Serializable {
     private String noteCover;
 
     @Schema(description = "用户 ID")
-    private String uid;
+    private Long uid;
 
     @Schema(description = "用户名")
     private String username;
@@ -38,16 +38,16 @@ public class CommentVO implements Serializable {
     private String avatar;
 
     @Schema(description = "笔记 ID")
-    private String noteUid;
+    private Long noteUid;
 
     @Schema(description = "推送用户名")
     private String pushUsername;
 
     @Schema(description = "回复评论 ID")
-    private String replyId;
+    private Long replyId;
 
     @Schema(description = "回复用户 ID")
-    private String replyUid;
+    private Long replyUid;
 
     @Schema(description = "回复用户名")
     private String replyUsername;

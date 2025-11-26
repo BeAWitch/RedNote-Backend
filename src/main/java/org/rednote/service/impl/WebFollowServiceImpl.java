@@ -17,8 +17,8 @@ public class WebFollowServiceImpl extends ServiceImpl<WebFollowMapper, WebFollow
      * @param followerId 关注的用户ID
      */
     @Override
-    public boolean isFollow(String followerId) {
-        String userId = UserHolder.getUserId();
+    public boolean isFollow(Long followerId) {
+        Long userId = UserHolder.getUserId();
         long count = this.count(new QueryWrapper<WebFollow>().eq("uid", userId).eq("fid", followerId));
         return count > 0;
     }

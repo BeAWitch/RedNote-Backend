@@ -10,12 +10,12 @@ import java.io.Serializable;
 @Schema(name = "点赞收藏 DTO")
 public class LikeOrCollectDTO implements Serializable {
 
-    @Schema(description = "点赞或收藏的 id")
-    private String likeOrCollectionId;
+    @Schema(description = "点赞或收藏的 ID")
+    private Long likeOrCollectionId;
 
-    @Schema(description = "需要通知的用户 id")
-    private String publishUid;
+    @Schema(description = "需要通知的用户 ID")
+    private Long publishUid;
 
-    @Schema(description = "点赞收藏类型:1-点赞图片，2-点赞评论，3-收藏图片，4-收藏专辑")
+    @Schema(description = "点赞收藏类型：1-点赞图片，2-点赞评论，3-收藏图片，4-收藏专辑")
     private Integer type;
 }

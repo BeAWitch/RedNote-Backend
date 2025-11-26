@@ -19,9 +19,4 @@ public class WebTag extends BaseEntity {
      * 标题
      */
     private String title;
-
-    /**
-     * 排序
-     */
-    private Integer sort;
 }

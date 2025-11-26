@@ -33,7 +33,7 @@ public class RefreshTokenInterceptor implements HandlerInterceptor {
             return true;
         }
         // 存在，保存用户 id 到 ThreadLocal
-        UserHolder.setUserId(userId);
+        UserHolder.setUserId(Long.valueOf(userId));
         // 刷新 token 有效期
         stringRedisTemplate.expire(key, RedisConstants.LOGIN_USER_TTL, TimeUnit.MINUTES);
         // 放行

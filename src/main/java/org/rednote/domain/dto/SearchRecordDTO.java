@@ -12,6 +12,6 @@ public class SearchRecordDTO implements Serializable {
     @Schema(description = "关键词")
     private String keyword;
 
-    @Schema(description = "笔记 id")
-    private String uid;
+    @Schema(description = "笔记 ID")
+    private Long uid;
 }

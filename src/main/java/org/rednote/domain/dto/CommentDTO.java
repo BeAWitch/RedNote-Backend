@@ -10,20 +10,20 @@ import java.io.Serializable;
 @Schema(name = "评论 DTO")
 public class CommentDTO implements Serializable {
 
-    @Schema(description = "笔记 id")
-    private String nid;
+    @Schema(description = "笔记 ID")
+    private Long nid;
 
-    @Schema(description = "笔记发布的用户 id")
-    private String noteUid;
+    @Schema(description = "笔记发布的用户 ID")
+    private Long noteUid;
 
-    @Schema(description = "评论的父 id")
-    private String pid;
+    @Schema(description = "评论的父 ID")
+    private Long pid;
 
-    @Schema(description = "当前评论回复的评论 id")
-    private String replyId;
+    @Schema(description = "当前评论回复的评论 ID")
+    private Long replyId;
 
-    @Schema(description = "回复的评论的用户 id")
-    private String replyUid;
+    @Schema(description = "回复的评论的用户 ID")
+    private Long replyUid;
 
     @Schema(description = "评论等级")
     private Integer level;

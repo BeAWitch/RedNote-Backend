@@ -11,13 +11,13 @@ import lombok.Data;
 public class WebFollow extends BaseEntity {
 
     /**
-     * 用户ID
+     * 用户 ID
      */
-    private String uid;
+    private Long uid;
 
     /**
-     * 关注用户ID
+     * 关注用户 ID
      */
-    private String fid;
+    private Long fid;
 
 }

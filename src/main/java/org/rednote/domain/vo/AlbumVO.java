@@ -12,7 +12,7 @@ import java.io.Serializable;
 public class AlbumVO implements Serializable {
 
     @Schema(description = "ID")
-    private String id;
+    private Long id;
 
     @Schema(description = "标题")
     private String title;
@@ -30,7 +30,7 @@ public class AlbumVO implements Serializable {
     private Long collectionCount;
 
     @Schema(description = "用户 ID")
-    private String userId;
+    private Long userId;
 
     @Schema(description = "用户名")
     private String username;

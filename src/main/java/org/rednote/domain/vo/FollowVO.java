@@ -12,7 +12,7 @@ import java.io.Serializable;
 public class FollowVO implements Serializable {
 
     @Schema(description = "用户 ID")
-    private String uid;
+    private Long uid;
 
     @Schema(description = "用户名")
     private String username;

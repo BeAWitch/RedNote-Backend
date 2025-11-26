@@ -11,8 +11,8 @@ import java.io.Serializable;
 @Data
 public class AuthUserDTO implements Serializable {
 
-    @Schema(description = "用户 id")
-    private String id;
+    @Schema(description = "用户 ID")
+    private Long id;
 
     @Schema(description = "用户名")
     private String username;

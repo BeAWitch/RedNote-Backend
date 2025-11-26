@@ -35,7 +35,7 @@ public class WebUser extends BaseEntity {
     /**
      * 性别
      */
-    private String gender;
+    private Integer gender;
 
     /**
      * 电话
@@ -53,7 +53,7 @@ public class WebUser extends BaseEntity {
     private String description;
 
     /**
-     * 用户状态
+     * 用户状态，（0-正常，1-异常）
      */
     private String status;
 
@@ -73,7 +73,7 @@ public class WebUser extends BaseEntity {
     private String userCover;
 
     /**
-     * 用户标签
+     * 用户标签，json 格式
      */
     private String tags;
 

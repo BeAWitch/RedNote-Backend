@@ -10,10 +10,10 @@ import java.io.Serializable;
 public class ChatUserRelationVO implements Serializable {
 
     @Schema(description = "ID")
-    private String id;
+    private Long id;
 
     @Schema(description = "用户 ID")
-    private String uid;
+    private Long uid;
 
     @Schema(description = "用户名")
     private String username;

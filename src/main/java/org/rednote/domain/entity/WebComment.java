@@ -11,44 +11,29 @@ import lombok.Data;
 public class WebComment extends BaseEntity {
 
     /**
-     * 笔记ID
+     * 笔记 ID
      */
-    private String nid;
+    private Long nid;
 
     /**
-     * 评论关联笔记的用户ID
+     * 发布评论的用户 ID
      */
-    private String noteUid;
+    private Long uid;
 
     /**
-     * 发布评论用户
+     * 根评论 ID
      */
-    private String uid;
+    private Long pid;
 
     /**
-     *根评论ID
+     * 回复的评论 ID
      */
-    private String pid;
-
-    /**
-     * 回复的评论ID
-     */
-    private String replyId;
-
-    /**
-     * 回复评论的用户ID
-     */
-    private String replyUid;
+    private Long replyId;
 
     /**
      * 评论等级
      */
     private Integer level;
-
-    /**
-     * 排序
-     */
-    private Integer sort;
 
     /**
      * 评论内容

@@ -16,8 +16,8 @@ public class SearchNoteDTO implements Serializable {
     private Integer type;
 
     @Schema(description = "分类 ID")
-    private String cid;
+    private Long cid;
 
     @Schema(description = "父分类 ID")
-    private String cpid;
+    private Long cpid;
 }

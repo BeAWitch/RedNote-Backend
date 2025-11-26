@@ -12,16 +12,16 @@ import java.io.Serializable;
 @Schema(name = "专辑")
 public class AlbumDTO implements Serializable {
 
-    @Schema(description = "专辑 id")
-    private String id;
+    @Schema(description = "专辑 ID")
+    private Long id;
 
     @Schema(description = "专辑名称")
     @NotBlank(message = "内容不能为空", groups = DefaultGroup.class)
     private String name;
 
-    @Schema(description = "专辑发布的用户 id")
-    @NotNull(message = "用户id不能为空", groups = DefaultGroup.class)
-    private String uid;
+    @Schema(description = "专辑发布的用户 ID")
+    @NotNull(message = "用户 ID 不能为空", groups = DefaultGroup.class)
+    private Long uid;
 
     @Schema(description = "专辑封面")
     private String albumCover;

@@ -11,12 +11,12 @@ import lombok.Data;
 public class WebUserNoteRelation extends BaseEntity {
 
     /**
-     * 笔记ID
+     * 笔记 ID
      */
-    private String nid;
+    private Long nid;
 
     /**
-     * 用户ID
+     * 用户 ID
      */
-    private String uid;
+    private Long uid;
 }

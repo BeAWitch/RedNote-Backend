@@ -13,10 +13,10 @@ import java.util.List;
 public class TrendVO implements Serializable {
 
     @Schema(description = "笔记 ID")
-    private String nid;
+    private Long nid;
 
     @Schema(description = "用户 ID")
-    private String uid;
+    private Long uid;
 
     @Schema(description = "用户名")
     private String username;
