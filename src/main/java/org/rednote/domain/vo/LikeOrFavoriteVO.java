@@ -9,7 +9,7 @@ import java.io.Serializable;
 @Data
 @Accessors(chain = true)
 @Schema(name = "点赞收藏 VO")
-public class LikeOrCollectVO implements Serializable {
+public class LikeOrFavoriteVO implements Serializable {
 
     @Schema(description = "项目 ID")
     private Long itemId;

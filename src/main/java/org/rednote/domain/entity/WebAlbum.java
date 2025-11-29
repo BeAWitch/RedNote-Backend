@@ -43,6 +43,6 @@ public class WebAlbum extends BaseEntity {
     /**
      * 收藏数量
      */
-    private Long collectionCount;
+    private Long favoriteCount;
 
 }

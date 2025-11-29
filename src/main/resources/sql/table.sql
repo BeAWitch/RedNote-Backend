@@ -11,7 +11,7 @@ CREATE TABLE `web_album`
     `type`             int               DEFAULT '0' COMMENT '专辑类型',
     `sort`             int               DEFAULT '0' COMMENT '专辑排序',
     `note_count`       bigint(20) UNSIGNED DEFAULT '0' COMMENT '专辑中的笔记数量',
-    `collection_count` bigint(20) UNSIGNED DEFAULT '0' COMMENT '收藏数量',
+    `favorite_count` bigint(20) UNSIGNED DEFAULT '0' COMMENT '收藏数量',
     `create_time`      datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time`      datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`)
@@ -123,13 +123,13 @@ CREATE TABLE `web_follow`
 -- ----------------------------
 -- Table structure for web_like_or_collect
 -- ----------------------------
-DROP TABLE IF EXISTS `web_like_or_collect`;
-CREATE TABLE `web_like_or_collect`
+DROP TABLE IF EXISTS `web_like_or_favorite`;
+CREATE TABLE `web_like_or_favorite`
 (
     `id`                    bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
     `uid`                   bigint(20) UNSIGNED NOT NULL COMMENT '点赞的用户',
-    `like_or_collection_id` bigint(20) UNSIGNED NOT NULL COMMENT '点赞或收藏的对象 id(可能是图片或者评论)',
-    `type`                  int      NOT NULL COMMENT '点赞收藏类型（1：点赞图片，2：点赞评论，3：收藏图片，4：收藏专辑）',
+    `like_or_favorite_id` bigint(20) UNSIGNED NOT NULL COMMENT '点赞或收藏的对象 id(可能是图片或者评论)',
+    `type`                  int      NOT NULL COMMENT '点赞收藏类型（1：点赞笔记，2：点赞评论，3：收藏笔记，4：收藏专辑）',
     `create_time`           datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time`           datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`)
@@ -207,7 +207,7 @@ CREATE TABLE `web_note`
     `note_type`         int               DEFAULT '0' COMMENT '笔记类型（0：图文，1:视频）',
     `view_count`        bigint            DEFAULT '0' COMMENT '笔记浏览次数',
     `like_count`        bigint            DEFAULT '0' COMMENT '笔记点赞次数',
-    `collection_count`  bigint            DEFAULT '0' COMMENT '笔记收藏次数',
+    `favorite_count`  bigint            DEFAULT '0' COMMENT '笔记收藏次数',
     `comment_count`     bigint            DEFAULT '0' COMMENT '笔记评论次数',
     `create_time`       datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time`       datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',

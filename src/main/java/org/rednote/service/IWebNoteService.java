@@ -23,7 +23,7 @@ public interface IWebNoteService extends IService<WebNote> {
      * 新增笔记
      *
      * @param noteData 笔记对象
-     * @param files    图片文件
+     * @param files    文件
      */
     Long saveNoteByDTO(String noteData, MultipartFile[] files);
 

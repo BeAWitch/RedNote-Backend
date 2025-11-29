@@ -53,7 +53,7 @@ public class NoteVO implements Serializable {
     private Long likeCount;
 
     @Schema(description = "收藏数")
-    private Long collectionCount;
+    private Long favoriteCount;
 
     @Schema(description = "评论数")
     private Long commentCount;
@@ -74,5 +74,5 @@ public class NoteVO implements Serializable {
     private Boolean isLike;
 
     @Schema(description = "是否收藏")
-    private Boolean isCollection;
+    private Boolean isFavorite;
 }

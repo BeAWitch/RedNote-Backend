@@ -13,11 +13,12 @@ import org.rednote.domain.dto.NoteDTO;
 import org.rednote.domain.entity.WebAlbumNoteRelation;
 import org.rednote.domain.entity.WebComment;
 import org.rednote.domain.entity.WebCommentSync;
-import org.rednote.domain.entity.WebLikeOrCollect;
+import org.rednote.domain.entity.WebLikeOrFavorite;
 import org.rednote.domain.entity.WebNote;
 import org.rednote.domain.entity.WebTag;
 import org.rednote.domain.entity.WebTagNoteRelation;
 import org.rednote.domain.entity.WebUser;
+import org.rednote.domain.entity.WebUserNoteRelation;
 import org.rednote.domain.vo.NoteVO;
 import org.rednote.enums.ResultCodeEnum;
 import org.rednote.exception.RedNoteException;
@@ -29,6 +30,7 @@ import org.rednote.mapper.WebNoteMapper;
 import org.rednote.mapper.WebTagMapper;
 import org.rednote.mapper.WebTagNoteRelationMapper;
 import org.rednote.mapper.WebUserMapper;
+import org.rednote.mapper.WebUserNoteRelationMapper;
 import org.rednote.service.IWebFollowService;
 import org.rednote.service.IWebNoteService;
 import org.rednote.service.IWebOssService;
@@ -52,6 +54,7 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
 
     private final WebUserMapper userMapper;
     private final WebTagNoteRelationMapper tagNoteRelationMapper;
+    private final WebUserNoteRelationMapper userNoteRelationMapper;
     private final WebTagMapper tagMapper;
     private final IWebFollowService followService;
     private final WebLikeOrCollectMapper likeOrCollectMapper;
@@ -71,7 +74,11 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
         if (note == null) {
             throw new RedNoteException(ResultCodeEnum.FAIL);
         }
+
+        // 更新浏览数
         note.setViewCount(note.getViewCount() + 1);
+        saveOrUpdate(note);
+
         WebUser user = userMapper.selectById(note.getUid());
         NoteVO noteVo = BeanUtil.copyProperties(note, NoteVO.class);
         noteVo.setUsername(user.getUsername())
@@ -82,14 +89,14 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
         noteVo.setIsFollow(follow);
 
         Long currentUid = UserHolder.getUserId();
-        List<WebLikeOrCollect> likeOrCollectionList =
-                likeOrCollectMapper.selectList(new QueryWrapper<WebLikeOrCollect>()
-                .eq("like_or_collection_id", noteId)
+        List<WebLikeOrFavorite> likeOrCollectionList =
+                likeOrCollectMapper.selectList(new QueryWrapper<WebLikeOrFavorite>()
+                .eq("like_or_favorite_id", noteId)
                 .eq("uid", currentUid));
 
-        Set<Integer> types = likeOrCollectionList.stream().map(WebLikeOrCollect::getType).collect(Collectors.toSet());
+        Set<Integer> types = likeOrCollectionList.stream().map(WebLikeOrFavorite::getType).collect(Collectors.toSet());
         noteVo.setIsLike(types.contains(1));
-        noteVo.setIsCollection(types.contains(3));
+        noteVo.setIsFavorite(types.contains(3));
 
         //得到标签
         List<WebTagNoteRelation> tagNoteRelationList =
@@ -108,7 +115,7 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
      * 新增笔记
      *
      * @param noteData 笔记对象
-     * @param files    图片文件
+     * @param files    文件
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -143,6 +150,8 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
 
         // 绑定标签关系
         bindTagsToNote(note, noteDTO);
+        // 绑定用户与笔记关系
+        bindUserToNote(note);
 
         return note.getId();
     }
@@ -166,8 +175,8 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
             ossService.batchDelete(pathArr);
             // TODO 可以使用多线程优化，
             // 删除点赞图片，评论，标签关系，收藏关系
-            likeOrCollectMapper.delete(new QueryWrapper<WebLikeOrCollect>()
-                    .eq("like_or_collection_id", noteId));
+            likeOrCollectMapper.delete(new QueryWrapper<WebLikeOrFavorite>()
+                    .eq("like_or_favorite_id", noteId));
             List<WebComment> commentList =
                     commentMapper.selectList(new QueryWrapper<WebComment>().eq("nid", noteId));
             List<WebCommentSync> commentSyncList =
@@ -175,14 +184,15 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
             List<Long> cids = commentList.stream().map(WebComment::getId).collect(Collectors.toList());
             List<Long> cids2 = commentSyncList.stream().map(WebCommentSync::getId).collect(Collectors.toList());
             if (CollUtil.isNotEmpty(cids)) {
-                likeOrCollectMapper.delete(new QueryWrapper<WebLikeOrCollect>()
-                        .in("like_or_collection_id", cids));
+                likeOrCollectMapper.delete(new QueryWrapper<WebLikeOrFavorite>()
+                        .in("like_or_favorite_id", cids));
                 commentMapper.deleteByIds(cids);
             }
             if (CollUtil.isNotEmpty(cids2)) {
                 commentSyncMapper.deleteByIds(cids2);
             }
             tagNoteRelationMapper.delete(new QueryWrapper<WebTagNoteRelation>().eq("nid", noteId));
+            userNoteRelationMapper.delete(new QueryWrapper<WebUserNoteRelation>().eq("nid", noteId));
             albumNoteRelationMapper.delete(new QueryWrapper<WebAlbumNoteRelation>().eq("nid", noteId));
         });
         this.removeBatchByIds(noteIds);
@@ -295,5 +305,19 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
             }
             tagNoteRelationMapper.insertOrUpdate(tagNoteRelationList);
         }
+    }
+
+    /**
+     * 绑定用户于笔记
+     *
+     * @param note
+     */
+    private void bindUserToNote(WebNote note) {
+        Long userID = note.getUid();
+        Long noteID = note.getId();
+        WebUserNoteRelation webUserNoteRelation = new WebUserNoteRelation();
+        webUserNoteRelation.setNid(noteID);
+        webUserNoteRelation.setUid(userID);
+        userNoteRelationMapper.insert(webUserNoteRelation);
     }
 }

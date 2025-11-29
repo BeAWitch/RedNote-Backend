@@ -87,7 +87,7 @@ public class WebNote extends BaseEntity {
     /**
      * 收藏次数
      */
-    private Long collectionCount;
+    private Long favoriteCount;
 
     /**
      * 评论次数

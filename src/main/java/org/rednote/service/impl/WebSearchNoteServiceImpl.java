@@ -10,13 +10,13 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.rednote.domain.dto.LikeOrFavoriteDTO;
 import org.rednote.domain.dto.SearchNoteDTO;
 import org.rednote.domain.entity.WebNavbar;
 import org.rednote.domain.entity.WebNote;
 import org.rednote.domain.entity.WebTag;
 import org.rednote.domain.entity.WebTagNoteRelation;
 import org.rednote.domain.entity.WebUser;
-import org.rednote.domain.entity.WebUserNoteRelation;
 import org.rednote.domain.vo.NoteSearchVO;
 import org.rednote.mapper.WebNavbarMapper;
 import org.rednote.mapper.WebNoteMapper;
@@ -24,6 +24,7 @@ import org.rednote.mapper.WebTagMapper;
 import org.rednote.mapper.WebTagNoteRelationMapper;
 import org.rednote.mapper.WebUserMapper;
 import org.rednote.mapper.WebUserNoteRelationMapper;
+import org.rednote.service.IWebLikeOrFavoriteService;
 import org.rednote.service.IWebSearchNoteService;
 import org.rednote.utils.UserHolder;
 import org.springframework.stereotype.Service;
@@ -46,6 +47,7 @@ public class WebSearchNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote
     private final WebTagMapper tagMapper;
     private final WebTagNoteRelationMapper tagNoteRelationMapper;
     private final WebUserNoteRelationMapper userNoteRelationMapper;
+    private final IWebLikeOrFavoriteService likeOrFavoriteService;
 
     /**
      * 搜索对应的笔记
@@ -91,6 +93,7 @@ public class WebSearchNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote
 
         // 转换为 VO 并填充额外信息
         IPage<NoteSearchVO> noteSearchVOIPage = resultPage.convert(this::convertToNoteSearchVO);
+
         return new Page<NoteSearchVO>()
                 .setRecords(noteSearchVOIPage.getRecords())
                 .setTotal(noteSearchVOIPage.getTotal());
@@ -291,12 +294,10 @@ public class WebSearchNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote
         Long currentUserId = UserHolder.getUserId();
 
         if (ObjectUtil.isNotEmpty(currentUserId) && ObjectUtil.isNotEmpty(noteId)) {
-            LambdaQueryWrapper<WebUserNoteRelation> likeWrapper = new LambdaQueryWrapper<>();
-            likeWrapper.eq(WebUserNoteRelation::getNid, noteId)
-                    .eq(WebUserNoteRelation::getUid, currentUserId);
-
-            Long count = userNoteRelationMapper.selectCount(likeWrapper);
-            vo.setIsLike(count > 0);
+            LikeOrFavoriteDTO likeOrFavoriteDTO = new LikeOrFavoriteDTO();
+            likeOrFavoriteDTO.setLikeOrFavoriteId(noteId);
+            likeOrFavoriteDTO.setType(1);
+            vo.setIsLike(likeOrFavoriteService.isLikeOrFavorite(likeOrFavoriteDTO));
         } else {
             vo.setIsLike(false);
         }

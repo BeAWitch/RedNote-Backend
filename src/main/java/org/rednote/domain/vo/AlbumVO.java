@@ -23,11 +23,11 @@ public class AlbumVO implements Serializable {
     @Schema(description = "排序")
     private Integer sort;
 
-    @Schema(description = "图片数量")
-    private Long imgCount;
+    @Schema(description = "笔记数量")
+    private Long noteCount;
 
     @Schema(description = "收藏数量")
-    private Long collectionCount;
+    private Long favoriteCount;
 
     @Schema(description = "用户 ID")
     private Long userId;

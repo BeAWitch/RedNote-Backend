@@ -19,10 +19,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+@Tag(name = "笔记搜索", description = "笔记搜索相关接口")
 @RestController
 @RequestMapping("/web/search/note")
 @RequiredArgsConstructor
-@Tag(name = "笔记搜索", description = "笔记搜索相关接口")
 public class WebSearchNoteController {
 
     private final IWebSearchNoteService searchNoteService;
