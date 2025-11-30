@@ -80,17 +80,17 @@ public class WebUser extends BaseEntity {
     /**
      * 笔记数量
      */
-    private Long trendCount;
+    private Long noteCount;
 
     /**
      * 关注数量
      */
-    private Long followerCount;
+    private Long followCount;
 
     /**
      * 粉丝数量
      */
-    private Long fanCount;
+    private Long followerCount;
 
     /**
      * 最后登录 IP

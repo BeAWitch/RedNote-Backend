@@ -5,5 +5,5 @@ import org.apache.ibatis.annotations.Mapper;
 import org.rednote.domain.entity.WebLikeOrFavorite;
 
 @Mapper
-public interface WebLikeOrCollectMapper extends BaseMapper<WebLikeOrFavorite> {
+public interface WebLikeOrFavoriteMapper extends BaseMapper<WebLikeOrFavorite> {
 }

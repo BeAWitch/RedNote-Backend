@@ -9,32 +9,18 @@ import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
+import org.rednote.constant.RedisConstants;
 import org.rednote.domain.dto.NoteDTO;
-import org.rednote.domain.entity.WebAlbumNoteRelation;
-import org.rednote.domain.entity.WebComment;
-import org.rednote.domain.entity.WebCommentSync;
-import org.rednote.domain.entity.WebLikeOrFavorite;
-import org.rednote.domain.entity.WebNote;
-import org.rednote.domain.entity.WebTag;
-import org.rednote.domain.entity.WebTagNoteRelation;
-import org.rednote.domain.entity.WebUser;
-import org.rednote.domain.entity.WebUserNoteRelation;
+import org.rednote.domain.entity.*;
 import org.rednote.domain.vo.NoteVO;
 import org.rednote.enums.ResultCodeEnum;
 import org.rednote.exception.RedNoteException;
-import org.rednote.mapper.WebAlbumNoteRelationMapper;
-import org.rednote.mapper.WebCommentMapper;
-import org.rednote.mapper.WebCommentSyncMapper;
-import org.rednote.mapper.WebLikeOrCollectMapper;
-import org.rednote.mapper.WebNoteMapper;
-import org.rednote.mapper.WebTagMapper;
-import org.rednote.mapper.WebTagNoteRelationMapper;
-import org.rednote.mapper.WebUserMapper;
-import org.rednote.mapper.WebUserNoteRelationMapper;
+import org.rednote.mapper.*;
 import org.rednote.service.IWebFollowService;
 import org.rednote.service.IWebNoteService;
 import org.rednote.service.IWebOssService;
 import org.rednote.utils.UserHolder;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -57,12 +43,14 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
     private final WebUserNoteRelationMapper userNoteRelationMapper;
     private final WebTagMapper tagMapper;
     private final IWebFollowService followService;
-    private final WebLikeOrCollectMapper likeOrCollectMapper;
+    private final WebLikeOrFavoriteMapper likeOrCollectMapper;
     private final WebCommentMapper commentMapper;
     private final WebCommentSyncMapper commentSyncMapper;
     private final WebAlbumNoteRelationMapper albumNoteRelationMapper;
     private final IWebOssService ossService;
-    
+    private final WebFollowMapper followMapper;
+    private final StringRedisTemplate stringRedisTemplate;
+
     /**
      * 获取笔记
      *
@@ -91,8 +79,8 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
         Long currentUid = UserHolder.getUserId();
         List<WebLikeOrFavorite> likeOrCollectionList =
                 likeOrCollectMapper.selectList(new QueryWrapper<WebLikeOrFavorite>()
-                .eq("like_or_favorite_id", noteId)
-                .eq("uid", currentUid));
+                        .eq("like_or_favorite_id", noteId)
+                        .eq("uid", currentUid));
 
         Set<Integer> types = likeOrCollectionList.stream().map(WebLikeOrFavorite::getType).collect(Collectors.toSet());
         noteVo.setIsLike(types.contains(1));
@@ -110,7 +98,7 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
 
         return noteVo;
     }
-    
+
     /**
      * 新增笔记
      *
@@ -123,7 +111,7 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
         Long currentUid = UserHolder.getUserId();
         // 更新用户笔记数量
         WebUser user = userMapper.selectById(currentUid);
-        user.setTrendCount(user.getTrendCount() + 1);
+        user.setNoteCount(user.getNoteCount() + 1);
         userMapper.updateById(user);
 
         // 保存笔记
@@ -131,7 +119,7 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
         WebNote note = BeanUtil.copyProperties(noteDTO, WebNote.class);
         note.setUid(currentUid);
         note.setAuthor(user.getUsername());
-        note.setAuditStatus(0);
+        note.setAuditStatus(1); // TODO 审核初始值修改
         note.setNoteType(0);
 
         // 批量上传图片
@@ -153,9 +141,12 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
         // 绑定用户与笔记关系
         bindUserToNote(note);
 
+        // 推送至粉丝收件箱
+        pushToFollowers(currentUid, note.getId());
+
         return note.getId();
     }
-    
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteNoteByIds(List<String> noteIds) {
@@ -232,7 +223,7 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
         }
 
         // 更新信息
-        note.setAuditStatus(0);
+        note.setAuditStatus(1); // TODO 审核初始值修改
         note.setNoteType(noteDTO.getType());
         note.setUpdateTime(new Date());
 
@@ -255,6 +246,9 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
         tagNoteRelationMapper.delete(new QueryWrapper<WebTagNoteRelation>().eq("nid", note.getId()));
         // 重新绑定标签关系
         bindTagsToNote(note, noteDTO);
+
+        // 推送至粉丝收件箱
+        // pushToFollowers(currentUid, note.getId()); // 暂存，更新时先不推送
     }
 
     @Override
@@ -319,5 +313,19 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
         webUserNoteRelation.setNid(noteID);
         webUserNoteRelation.setUid(userID);
         userNoteRelationMapper.insert(webUserNoteRelation);
+    }
+
+    /**
+     * 将笔记推送至用户的收件箱
+     */
+    private void pushToFollowers(Long uid, Long nid) {
+        List<Long> followerIdList =
+                followMapper.selectList(new QueryWrapper<WebFollow>().eq("fid", uid)).stream()
+                        .map(WebFollow::getUid)
+                        .toList();
+        for (Long followerId : followerIdList) {
+            String key = RedisConstants.TREND_KEY + followerId;
+            stringRedisTemplate.opsForZSet().add(key, nid.toString(), System.currentTimeMillis());
+        }
     }
 }

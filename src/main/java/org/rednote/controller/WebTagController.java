@@ -42,8 +42,8 @@ public class WebTagController {
     }
 
     @Operation(summary = "获取当前标签信息", description = "获取当前标签信息")
-    @GetMapping("getTagById/{tagId}")
-    public Result<?> getTagById(@Parameter(description = "标签 ID") @PathVariable String tagId) {
+    @GetMapping("getTagById")
+    public Result<?> getTagById(@Parameter(description = "标签 ID") @RequestParam String tagId) {
         WebTag tag = tagService.getById(tagId);
         return Result.ok(BeanUtil.copyProperties(tag, TagVO.class));
     }

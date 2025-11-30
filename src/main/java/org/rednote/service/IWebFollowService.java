@@ -1,14 +1,45 @@
 package org.rednote.service;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.IService;
+import org.rednote.domain.dto.ScrollResult;
+import org.rednote.domain.entity.WebFollow;
+import org.rednote.domain.vo.FollowVO;
+import org.rednote.domain.vo.TrendVO;
+
 /**
  * 关注
  */
-public interface IWebFollowService {
+public interface IWebFollowService extends IService<WebFollow> {
+
+    /**
+     * 获取关注用户的所有动态
+     *
+     * @param lastTime 上一次的查询的最小时间戳
+     * @param offset   上一次的查询中最小时间戳的个数
+     * @param count    查询的数量
+     */
+    ScrollResult<TrendVO> getFollowTrend(long lastTime, int offset, int count);
+
+    /**
+     * 关注用户
+     *
+     * @param followerId 关注用户ID
+     */
+    void followById(Long followerId);
 
     /**
      * 当前用户是否关注
      *
-     * @param followerId 关注的用户ID
+     * @param followId 关注的用户ID
      */
-    boolean isFollow(Long followerId);
+    boolean isFollow(Long followId);
+
+    /**
+     * 获取当前用户的最新关注信息
+     *
+     * @param currentPage 当前页
+     * @param pageSize    分页数
+     */
+    Page<FollowVO> getFollowInfo(long currentPage, long pageSize);
 }

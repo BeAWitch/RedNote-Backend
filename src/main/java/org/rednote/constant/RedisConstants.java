@@ -18,4 +18,7 @@ public class RedisConstants {
     public static final String NOTE_FAVORITE_KEY = "note:favorite:";
     public static final String COMMENT_LIKE_KEY = "comment:like:";
     public static final String ALBUM_FAVORITE_KEY = "album:favorite:";
+
+    // 动态
+    public static final String TREND_KEY = "trend:list:"; // 收件箱
 }

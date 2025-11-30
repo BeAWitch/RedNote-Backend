@@ -1,99 +1,58 @@
-/*
 package org.rednote.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.rednote.domain.dto.Result;
+import org.rednote.domain.dto.ScrollResult;
 import org.rednote.domain.vo.FollowVO;
 import org.rednote.domain.vo.TrendVO;
 import org.rednote.service.IWebFollowService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-*/
-/**
- * 关注
- *//*
-
-@Tag(name = "笔记搜索", description = "笔记搜索相关接口")
-@RequestMapping("/web/follower")
+@Tag(name = "关注管理", description = "关注管理相关接口")
+@RequestMapping("/web/follow")
 @RestController
 @RequiredArgsConstructor
 public class WebFollowController {
 
     private final IWebFollowService followService;
 
-
-    */
-/**
-     * 获取关注用户的所有动态
-     *
-     * @param currentPage 当前页
-     * @param pageSize    分页数
-     *//*
-
-    @GetMapping("getFollowTrend/{currentPage}/{pageSize}")
-    public Result<?> getFollowTrend(@PathVariable long currentPage, @PathVariable long pageSize) {
-        Page<TrendVO> pageInfo = followService.getFollowTrend(currentPage, pageSize);
-        return Result.ok(pageInfo);
+    @Operation(summary = "获取关注用户的所有动态", description = "获取关注用户的所有动态")
+    @GetMapping("getFollowTrend")
+    public Result<?> getFollowTrend(@Parameter(description = "上一次的查询的最小时间戳") long lastTime,
+                                    @Parameter(description = "上一次的查询中最小时间戳的个数")
+                                    @RequestParam(defaultValue = "0") int offset,
+                                    @Parameter(description = "查询的数量") int count) {
+        ScrollResult<TrendVO> trendVOScrollResult = followService.getFollowTrend(lastTime, offset, count);
+        return Result.ok(trendVOScrollResult);
     }
 
-    */
-/**
-     * 获取当前用户所有的关注和粉丝
-     *
-     * @param currentPage 当前页
-     * @param pageSize    分页数
-     * @param type        类型
-     *//*
-
-    @GetMapping("getFriend/{currentPage}/{pageSize}")
-    public Result<?> getFriend(@PathVariable long currentPage, @PathVariable long pageSize, String uid, Integer type) {
-        Page<FollowVO> pageInfo = followService.getFriend(currentPage, pageSize, uid, type);
-        return Result.ok(pageInfo);
-    }
-
-    */
-/**
-     * 关注用户
-     *
-     * @param followerId 关注用户ID
-     *//*
-
+    @Operation(summary = "关注用户", description = "关注用户")
     @GetMapping("followById")
-    public Result<?> followById(String followerId) {
-        followService.followById(followerId);
+    public Result<?> followById(@Parameter(description = "关注用户 ID") Long followId) {
+        followService.followById(followId);
         return Result.ok();
     }
 
-    */
-/**
-     * 当前用户是否关注
-     *
-     * @param followerId 关注的用户ID
-     *//*
-
+    @Operation(summary = "当前用户是否关注", description = "当前用户是否关注")
     @GetMapping("isFollow")
-    public Result<?> isFollow(String followerId) {
-        boolean flag = followService.isFollow(followerId);
+    public Result<?> isFollow(@Parameter(description = "关注用户 ID") Long followId) {
+        boolean flag = followService.isFollow(followId);
         return Result.ok(flag);
     }
 
-    */
-/**
-     * 获取当前用户的最新关注信息
-     *
-     * @param currentPage 当前页
-     * @param pageSize    分页数
-     *//*
-
-    @GetMapping("getNoticeFollower/{currentPage}/{pageSize}")
-    public Result<?> getNoticeFollower(@PathVariable long currentPage, @PathVariable long pageSize) {
-        Page<FollowVO> pageInfo = followService.getNoticeFollower(currentPage, pageSize);
+    @Operation(summary = "获取当前用户的最新关注信息", description = "获取当前用户的最新关注信息")
+    @GetMapping("getFollowInfo/{currentPage}/{pageSize}")
+    public Result<?> getFollowInfo(@Parameter(description = "当前页码") @PathVariable long currentPage,
+                                   @Parameter(description = "每页大小") @PathVariable long pageSize) {
+        Page<FollowVO> pageInfo = followService.getFollowInfo(currentPage, pageSize);
         return Result.ok(pageInfo);
     }
 }
-*/

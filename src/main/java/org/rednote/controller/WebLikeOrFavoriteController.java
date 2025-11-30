@@ -41,11 +41,11 @@ public class WebLikeOrFavoriteController {
     }
 
     @Operation(summary = "获取当前用户最新的点赞和收藏信息", description = "获取当前用户最新的点赞和收藏信息")
-    @GetMapping("getNoticeLikeOrFavorite/{currentPage}/{pageSize}")
-    public Result<?> getNoticeLikeOrFavorite(
+    @GetMapping("getLikeAndFavoriteInfo/{currentPage}/{pageSize}")
+    public Result<?> getLikeAndFavoriteInfo(
             @Parameter(description = "当前页码") @PathVariable long currentPage,
             @Parameter(description = "每页大小") @PathVariable long pageSize) {
-        Page<LikeOrFavoriteVO> pageInfo = likeOrFavoriteService.getNoticeLikeOrFavorite(currentPage, pageSize);
+        Page<LikeOrFavoriteVO> pageInfo = likeOrFavoriteService.getLikeAndFavoriteInfo(currentPage, pageSize);
         return Result.ok(pageInfo);
     }
 }

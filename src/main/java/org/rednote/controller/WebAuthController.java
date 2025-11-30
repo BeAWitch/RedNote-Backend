@@ -58,7 +58,8 @@ public class WebAuthController {
 
     @Operation(summary = "用户注册", description = "新用户注册账号")
     @PostMapping("register")
-    public Result<WebUser> register(@Parameter(description = "用户信息") @RequestBody @Validated(Default.class) AuthUserDTO authUserDTO) {
+    public Result<WebUser> register(
+            @Parameter(description = "用户信息") @RequestBody @Validated(Default.class) AuthUserDTO authUserDTO) {
         WebUser user = authUserService.register(authUserDTO);
         return Result.ok(user);
     }
@@ -72,7 +73,8 @@ public class WebAuthController {
 
     @Operation(summary = "修改密码", description = "用户修改登录密码")
     @PostMapping("updatePassword")
-    public Result<Boolean> updatePassword(@Parameter(description = "用户登录信息") @RequestBody @Validated(Default.class) AuthUserDTO authUserDTO) {
+    public Result<Boolean> updatePassword(
+            @Parameter(description = "用户登录信息") @RequestBody @Validated(Default.class) AuthUserDTO authUserDTO) {
         Boolean flag = authUserService.updatePassword(authUserDTO);
         return Result.ok(flag);
     }

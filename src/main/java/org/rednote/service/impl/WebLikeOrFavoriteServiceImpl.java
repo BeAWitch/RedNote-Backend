@@ -24,7 +24,7 @@ import org.rednote.mapper.WebAlbumMapper;
 import org.rednote.mapper.WebAlbumNoteRelationMapper;
 import org.rednote.mapper.WebCommentMapper;
 import org.rednote.mapper.WebCommentSyncMapper;
-import org.rednote.mapper.WebLikeOrCollectMapper;
+import org.rednote.mapper.WebLikeOrFavoriteMapper;
 import org.rednote.mapper.WebNoteMapper;
 import org.rednote.mapper.WebUserMapper;
 import org.rednote.service.IWebLikeOrFavoriteService;
@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @RequiredArgsConstructor
-public class WebLikeOrFavoriteServiceImpl extends ServiceImpl<WebLikeOrCollectMapper, WebLikeOrFavorite> implements IWebLikeOrFavoriteService {
+public class WebLikeOrFavoriteServiceImpl extends ServiceImpl<WebLikeOrFavoriteMapper, WebLikeOrFavorite> implements IWebLikeOrFavoriteService {
 
     private final WebUserMapper userMapper;
     private final WebNoteMapper noteMapper;
@@ -115,7 +115,7 @@ public class WebLikeOrFavoriteServiceImpl extends ServiceImpl<WebLikeOrCollectMa
      * @param pageSize    分页数
      */
     @Override
-    public Page<LikeOrFavoriteVO> getNoticeLikeOrFavorite(long currentPage, long pageSize) {
+    public Page<LikeOrFavoriteVO> getLikeAndFavoriteInfo(long currentPage, long pageSize) {
         Page<LikeOrFavoriteVO> result = new Page<>();
         Long currentUid = UserHolder.getUserId();
 

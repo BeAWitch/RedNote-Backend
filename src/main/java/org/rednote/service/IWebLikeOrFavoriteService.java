@@ -32,5 +32,5 @@ public interface IWebLikeOrFavoriteService extends IService<WebLikeOrFavorite> {
      * @param currentPage 当前页
      * @param pageSize    分页数
      */
-    Page<LikeOrFavoriteVO> getNoticeLikeOrFavorite(long currentPage, long pageSize);
+    Page<LikeOrFavoriteVO> getLikeAndFavoriteInfo(long currentPage, long pageSize);
 }
