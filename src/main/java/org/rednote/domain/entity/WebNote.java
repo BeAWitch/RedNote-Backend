@@ -70,7 +70,7 @@ public class WebNote extends BaseEntity {
     private Integer pinned;
 
     /**
-     * 审核状态（0-未过审，1-过审）
+     * 审核状态（0-审核中，1-通过，2-未通过）
      */
     private Integer auditStatus;
 

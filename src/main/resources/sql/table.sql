@@ -259,7 +259,7 @@ CREATE TABLE `web_note`
     `urls`              longtext COMMENT '图片urls',
     `count`             int                          DEFAULT NULL COMMENT '图片数量',
     `pinned`            int                          DEFAULT '0' COMMENT '是否置顶',
-    `audit_status`      int                          DEFAULT NULL COMMENT '审核状态',
+    `audit_status`      int                          DEFAULT NULL COMMENT '审核状态（0：审核中，1：通过，2：未通过）',
     `note_type`         int                          DEFAULT '0' COMMENT '笔记类型（0：图文，1:视频）',
     `view_count`        bigint                       DEFAULT '0' COMMENT '笔记浏览次数',
     `like_count`        bigint                       DEFAULT '0' COMMENT '笔记点赞次数',
