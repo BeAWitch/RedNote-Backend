@@ -127,8 +127,7 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
         try {
             dataList = ossService.saveBatch(files);
         } catch (Exception e) {
-            log.error("图片上传失败");
-            e.printStackTrace();
+            throw new RedNoteException("图片上传失败");
         }
         String[] urlArr = Objects.requireNonNull(dataList).toArray(new String[dataList.size()]);
         String urls = JSONUtil.toJsonStr(urlArr);
