@@ -58,7 +58,7 @@ public class CommentVO implements Serializable {
     @Schema(description = "评论内容")
     private String content;
 
-    @Schema(description = "回复内容")
+    @Schema(description = "被回复的评论的内容")
     private String replyContent;
 
     @Schema(description = "评论等级")
@@ -77,7 +77,7 @@ public class CommentVO implements Serializable {
     private Boolean isLike;
 
     @Schema(description = "二级评论数量")
-    private Long twoCommentCount;
+    private Long levelTwoCommentCount;
 
     @Schema(description = "子评论列表")
     private List<CommentVO> children;

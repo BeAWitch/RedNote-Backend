@@ -115,12 +115,13 @@ public class WebUserServiceImpl extends ServiceImpl<WebUserMapper, WebUser> impl
                         .eq("uid", userId)
                         .eq("type", type)
                         .orderByDesc("create_time"));
-
-        List<WebLikeOrFavorite> likeOrFavoriteNoteList = likeOrFavoritePage.getRecords();
+        List<Long> likeOrFavoriteIdList =
+                likeOrFavoritePage.getRecords().stream().map(WebLikeOrFavorite::getLikeOrFavoriteId).toList();
         long total = likeOrFavoritePage.getTotal();
-        if (CollUtil.isEmpty(likeOrFavoriteNoteList)) {
+        if (CollUtil.isEmpty(likeOrFavoriteIdList)) {
             return null;
         }
+        List<WebNote> likeOrFavoriteNoteList = noteMapper.selectBatchIds(likeOrFavoriteIdList);
 
         Long currentUserId = UserHolder.getUserId();
         // 是否点赞

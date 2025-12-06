@@ -14,7 +14,6 @@ import org.rednote.domain.dto.LikeOrFavoriteDTO;
 import org.rednote.domain.entity.WebAlbum;
 import org.rednote.domain.entity.WebAlbumNoteRelation;
 import org.rednote.domain.entity.WebComment;
-import org.rednote.domain.entity.WebCommentSync;
 import org.rednote.domain.entity.WebLikeOrFavorite;
 import org.rednote.domain.entity.WebNote;
 import org.rednote.domain.entity.WebUser;
@@ -23,7 +22,6 @@ import org.rednote.domain.vo.LikeOrFavoriteVO;
 import org.rednote.mapper.WebAlbumMapper;
 import org.rednote.mapper.WebAlbumNoteRelationMapper;
 import org.rednote.mapper.WebCommentMapper;
-import org.rednote.mapper.WebCommentSyncMapper;
 import org.rednote.mapper.WebLikeOrFavoriteMapper;
 import org.rednote.mapper.WebNoteMapper;
 import org.rednote.mapper.WebUserMapper;
@@ -51,7 +49,6 @@ public class WebLikeOrFavoriteServiceImpl extends ServiceImpl<WebLikeOrFavoriteM
     private final WebNoteMapper noteMapper;
     private final WebAlbumMapper albumMapper;
     private final WebCommentMapper commentMapper;
-    private final WebCommentSyncMapper commentSyncMapper;
     private final WebAlbumNoteRelationMapper albumNoteRelationMapper;
     private final StringRedisTemplate stringRedisTemplate;
 
@@ -212,11 +209,7 @@ public class WebLikeOrFavoriteServiceImpl extends ServiceImpl<WebLikeOrFavoriteM
                 break;
             case 2:
                 WebComment comment = commentMapper.selectById(likeOrFavoriteDTO.getLikeOrFavoriteId());
-                if (comment == null) {
-                    WebCommentSync commentSync = commentSyncMapper.selectById(likeOrFavoriteDTO.getLikeOrFavoriteId());
-                    commentSync.setLikeCount(commentSync.getLikeCount() + val);
-                    commentSyncMapper.updateById(commentSync);
-                } else {
+                if (ObjectUtil.isNotNull(comment)) {
                     comment.setLikeCount(comment.getLikeCount() + val);
                     commentMapper.updateById(comment);
                 }

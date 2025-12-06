@@ -45,7 +45,6 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
     private final IWebFollowService followService;
     private final WebLikeOrFavoriteMapper likeOrCollectMapper;
     private final WebCommentMapper commentMapper;
-    private final WebCommentSyncMapper commentSyncMapper;
     private final WebAlbumNoteRelationMapper albumNoteRelationMapper;
     private final IWebOssService ossService;
     private final WebFollowMapper followMapper;
@@ -169,17 +168,11 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
                     .eq("like_or_favorite_id", noteId));
             List<WebComment> commentList =
                     commentMapper.selectList(new QueryWrapper<WebComment>().eq("nid", noteId));
-            List<WebCommentSync> commentSyncList =
-                    commentSyncMapper.selectList(new QueryWrapper<WebCommentSync>().eq("nid", noteId));
             List<Long> cids = commentList.stream().map(WebComment::getId).collect(Collectors.toList());
-            List<Long> cids2 = commentSyncList.stream().map(WebCommentSync::getId).collect(Collectors.toList());
             if (CollUtil.isNotEmpty(cids)) {
                 likeOrCollectMapper.delete(new QueryWrapper<WebLikeOrFavorite>()
                         .in("like_or_favorite_id", cids));
                 commentMapper.deleteByIds(cids);
-            }
-            if (CollUtil.isNotEmpty(cids2)) {
-                commentSyncMapper.deleteByIds(cids2);
             }
             tagNoteRelationMapper.delete(new QueryWrapper<WebTagNoteRelation>().eq("nid", noteId));
             userNoteRelationMapper.delete(new QueryWrapper<WebUserNoteRelation>().eq("nid", noteId));

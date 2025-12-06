@@ -31,6 +31,11 @@ public class WebComment extends BaseEntity {
     private Long replyId;
 
     /**
+     * 回复的用户 ID
+     */
+    private Long replyUid;
+
+    /**
      * 评论等级
      */
     private Integer level;
@@ -48,5 +53,5 @@ public class WebComment extends BaseEntity {
     /**
      * 二级评论数量
      */
-    private Long twoCommentCount;
+    private Long levelTwoCommentCount;
 }

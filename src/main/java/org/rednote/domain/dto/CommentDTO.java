@@ -13,7 +13,7 @@ public class CommentDTO implements Serializable {
     @Schema(description = "笔记 ID")
     private Long nid;
 
-    @Schema(description = "笔记发布的用户 ID")
+    @Schema(description = "发布笔记的用户 ID")
     private Long noteUid;
 
     @Schema(description = "评论的父 ID")

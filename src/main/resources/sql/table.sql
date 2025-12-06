@@ -89,10 +89,11 @@ CREATE TABLE `web_comment`
     `uid`               bigint(20) UNSIGNED          DEFAULT NULL COMMENT '发布评论的用户 id',
     `pid`               bigint(20) UNSIGNED          DEFAULT '0' COMMENT '根评论 id',
     `reply_id`          bigint(20) UNSIGNED          DEFAULT '0' COMMENT '回复的评论 id',
+    `reply_uid`         bigint(20) UNSIGNED          DEFAULT '0' COMMENT '回复的用户 id',
     `level`             int                          DEFAULT '0' COMMENT '评论的等级',
     `content`           longtext COMMENT '评论的内容',
     `like_count`        bigint(20) UNSIGNED          DEFAULT '0' COMMENT '点赞数量',
-    `two_comment_count` bigint(20) UNSIGNED          DEFAULT '0' COMMENT '二级评论数量',
+    `level_two_comment_count` bigint(20) UNSIGNED          DEFAULT '0' COMMENT '二级评论数量',
     `create_time`       datetime            NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time`       datetime            NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`)
@@ -100,29 +101,6 @@ CREATE TABLE `web_comment`
   AUTO_INCREMENT = 38
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_0900_ai_ci COMMENT ='评论表';
-
--- ----------------------------
--- Table structure for web_comment_sync
--- ----------------------------
-DROP TABLE IF EXISTS `web_comment_sync`;
-CREATE TABLE `web_comment_sync`
-(
-    `id`                bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
-    `nid`               bigint(20) UNSIGNED          DEFAULT NULL COMMENT '笔记 id',
-    `uid`               bigint(20) UNSIGNED          DEFAULT NULL COMMENT '发布评论的用户 id',
-    `pid`               bigint(20) UNSIGNED          DEFAULT '0' COMMENT '根评论 id',
-    `reply_id`          bigint(20) UNSIGNED          DEFAULT '0' COMMENT '回复的评论 id',
-    `level`             int                          DEFAULT '0' COMMENT '评论的等级',
-    `content`           longtext COMMENT '评论的内容',
-    `like_count`        bigint(20) UNSIGNED          DEFAULT '0' COMMENT '点赞数量',
-    `two_comment_count` bigint(20) UNSIGNED          DEFAULT '0' COMMENT '二级评论数量',
-    `create_time`       datetime            NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `update_time`       datetime            NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    PRIMARY KEY (`id`)
-) ENGINE = InnoDB
-  AUTO_INCREMENT = 38
-  DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_0900_ai_ci COMMENT ='同步评论表';
 
 -- ----------------------------
 -- Table structure for web_follow
