@@ -14,7 +14,7 @@ public class LikeOrFavoriteDTO implements Serializable {
     private Long likeOrFavoriteId;
 
     @Schema(description = "需要通知的用户 ID")
-    private Long publishUid;
+    private Long notifyUid;
 
     @Schema(description = "点赞收藏类型：1-点赞笔记，2-点赞评论，3-收藏笔记，4-收藏专辑")
     private Integer type;

@@ -17,6 +17,11 @@ public class WebLikeOrFavorite extends BaseEntity {
     private Long uid;
 
     /**
+     * 需要通知的用户 ID
+     */
+    private Long notifyUid;
+
+    /**
      * 点赞和收藏的 ID（可能是笔记/评论）
      */
     private Long likeOrFavoriteId;

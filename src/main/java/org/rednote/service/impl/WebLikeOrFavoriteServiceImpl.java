@@ -19,12 +19,14 @@ import org.rednote.domain.entity.WebNote;
 import org.rednote.domain.entity.WebUser;
 import org.rednote.domain.vo.CommentVO;
 import org.rednote.domain.vo.LikeOrFavoriteVO;
+import org.rednote.enums.UncheckedMessageEnum;
 import org.rednote.mapper.WebAlbumMapper;
 import org.rednote.mapper.WebAlbumNoteRelationMapper;
 import org.rednote.mapper.WebCommentMapper;
 import org.rednote.mapper.WebLikeOrFavoriteMapper;
 import org.rednote.mapper.WebNoteMapper;
 import org.rednote.mapper.WebUserMapper;
+import org.rednote.service.IWebChatService;
 import org.rednote.service.IWebLikeOrFavoriteService;
 import org.rednote.utils.UserHolder;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -50,6 +52,7 @@ public class WebLikeOrFavoriteServiceImpl extends ServiceImpl<WebLikeOrFavoriteM
     private final WebAlbumMapper albumMapper;
     private final WebCommentMapper commentMapper;
     private final WebAlbumNoteRelationMapper albumNoteRelationMapper;
+    private final IWebChatService chatService;
     private final StringRedisTemplate stringRedisTemplate;
 
     /**
@@ -86,8 +89,13 @@ public class WebLikeOrFavoriteServiceImpl extends ServiceImpl<WebLikeOrFavoriteM
 
             // 消息通知
             // 不是当前用户才进行通知
-            if (!likeOrFavoriteDTO.getPublishUid().equals(currentUid)) {
-                // TODO websocket 消息推送
+            if (!likeOrFavoriteDTO.getNotifyUid().equals(currentUid)) {
+                Long publishUid = likeOrFavoriteDTO.getNotifyUid();
+                chatService.increaseUncheckedMessageCount(
+                        UncheckedMessageEnum.LIKE_OR_FAVORITE_COUNT,
+                        publishUid,
+                        1
+                );
             }
         }
     }
@@ -118,7 +126,7 @@ public class WebLikeOrFavoriteServiceImpl extends ServiceImpl<WebLikeOrFavoriteM
 
         Page<WebLikeOrFavorite> likeOrFavoritePage = this.page(new Page<>((int) currentPage, (int) pageSize),
                 new QueryWrapper<WebLikeOrFavorite>()
-                        .eq("uid", currentUid)
+                        .eq("notify_uid", currentUid)
                         .orderByDesc("create_time"));
         List<WebLikeOrFavorite> likeOrFavoriteList = likeOrFavoritePage.getRecords();
         long total = likeOrFavoritePage.getTotal();
@@ -128,7 +136,7 @@ public class WebLikeOrFavoriteServiceImpl extends ServiceImpl<WebLikeOrFavoriteM
         // 得到所有用户
         Set<Long> uids = likeOrFavoriteList.stream().map(WebLikeOrFavorite::getUid).collect(Collectors.toSet());
         Map<Long, WebUser> userMap = new HashMap<>(16);
-        if (CollUtil.isNotEmpty(userMap)) {
+        if (CollUtil.isNotEmpty(uids)) {
             userMap = userMapper.selectBatchIds(uids).stream().collect(Collectors.toMap(WebUser::getId, user -> user));
         }
         // 笔记

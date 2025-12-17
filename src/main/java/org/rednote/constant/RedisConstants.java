@@ -21,4 +21,11 @@ public class RedisConstants {
 
     // 动态
     public static final String TREND_KEY = "trend:list:"; // 收件箱
+
+    // 消息
+    public static final String UNCHECKED_LIKEORFAVORITE_KEY = "unchecked:likeOrFavorite:";
+    public static final String UNCHECKED_FOLLOW_KEY = "unchecked:follow:";
+    public static final String UNCHECKED_COMMENT_KEY = "unchecked:comment:";
+    public static final String UNCHECKED_MESSAGE_KEY = "unchecked:message:";
+
 }

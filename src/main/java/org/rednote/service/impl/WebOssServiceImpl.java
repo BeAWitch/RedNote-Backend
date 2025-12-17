@@ -8,9 +8,13 @@ import org.rednote.service.IWebOssService;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 
 /**
@@ -40,6 +44,11 @@ public class WebOssServiceImpl implements IWebOssService {
             default:
                 throw new IllegalArgumentException("不支持的存储类型: " + type);
         }
+    }
+
+    @Override
+    public String save(String base64) {
+        return save(base64ToMultipartFile(base64));
     }
 
     /**
@@ -112,4 +121,82 @@ public class WebOssServiceImpl implements IWebOssService {
             delete(path);
         }
     }
+
+    /**
+     * Base64 转 MultipartFile
+     *
+     * @param base64 base64
+     * @return MultipartFile
+     */
+    private MultipartFile base64ToMultipartFile(String base64) {
+        return new Base64MultipartFile(base64);
+    }
+
+    private static class Base64MultipartFile implements MultipartFile {
+
+        private final byte[] content;
+        private final String header;
+        private final String suffix;
+
+        /**
+         * 构造方法
+         * Base64 字符串转 MultipartFile
+         *
+         * @param base64 base64
+         */
+        public Base64MultipartFile(String base64) {
+            String[] parts = base64.split(",");
+            this.header = parts[0];
+            this.content = Base64.getDecoder().decode(parts[1]);
+
+            this.suffix = header.substring(
+                    header.indexOf("/") + 1,
+                    header.indexOf(";")
+            );
+        }
+
+        @Override
+        public String getName() {
+            return "file";
+        }
+
+        @Override
+        public String getOriginalFilename() {
+            return UUID.randomUUID() + "." + suffix;
+        }
+
+        @Override
+        public String getContentType() {
+            return header.substring(
+                    header.indexOf(":") + 1,
+                    header.indexOf(";")
+            );
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return content.length == 0;
+        }
+
+        @Override
+        public long getSize() {
+            return content.length;
+        }
+
+        @Override
+        public byte[] getBytes() {
+            return content;
+        }
+
+        @Override
+        public InputStream getInputStream() {
+            return new ByteArrayInputStream(content);
+        }
+
+        @Override
+        public void transferTo(File dest) throws IOException {
+            Files.write(dest.toPath(), content);
+        }
+    }
+
 }

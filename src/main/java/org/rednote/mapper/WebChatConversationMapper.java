@@ -2,8 +2,8 @@ package org.rednote.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
-import org.rednote.domain.entity.WebChatUserRelation;
+import org.rednote.domain.entity.WebChatConversation;
 
 @Mapper
-public interface WebChatUserRelationMapper extends BaseMapper<WebChatUserRelation> {
+public interface WebChatConversationMapper extends BaseMapper<WebChatConversation> {
 }

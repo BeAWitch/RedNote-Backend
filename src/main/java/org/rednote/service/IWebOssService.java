@@ -17,6 +17,13 @@ public interface IWebOssService {
     String save(MultipartFile file);
 
     /**
+     * 上传 base64 编码的图片
+     *
+     * @param base64 base64 编码的图片
+     */
+    String save(String base64);
+
+    /**
      * 批量上传文件
      *
      * @param files 文件集

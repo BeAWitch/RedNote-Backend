@@ -38,45 +38,45 @@ CREATE TABLE `web_album_note_relation`
   COLLATE = utf8mb4_0900_ai_ci COMMENT ='专辑-笔记关联表';
 
 -- ----------------------------
--- Table structure for web_chat
+-- Table structure for web_chat_conversation
 -- ----------------------------
-DROP TABLE IF EXISTS `web_chat`;
-CREATE TABLE `web_chat`
+DROP TABLE IF EXISTS `web_chat_conversation`;
+CREATE TABLE web_chat_conversation
 (
-    `id`          bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
-    `send_uid`    bigint(20) UNSIGNED NOT NULL COMMENT '发送方的用户 id',
-    `accept_uid`  bigint(20) UNSIGNED NOT NULL COMMENT '接收方的用户 id',
-    `content`     longtext COMMENT '聊天内容',
-    `msg_type`    int                          DEFAULT '0' COMMENT '消息类型（0：通知消息，1：文本消息，2：图片消息，3：语音消息，4：视频消息，5：自定义消息）',
-    `chat_type`   int                          DEFAULT '0' COMMENT '聊天类型（0：私聊，1：群聊）',
-    `create_time` datetime            NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `update_time` datetime            NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    PRIMARY KEY (`id`)
-) ENGINE = InnoDB
-  AUTO_INCREMENT = 39
-  DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_0900_ai_ci COMMENT ='聊天表';
+    id          bigint unsigned AUTO_INCREMENT PRIMARY KEY COMMENT '会话 id',
+    chat_type   tinyint  NOT NULL COMMENT '会话类型（0-私聊 1-群聊）',
+    create_time datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    update_time datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) COMMENT ='聊天会话表';
 
 -- ----------------------------
--- Table structure for web_chat_user_relation
+-- Table structure for web_chat_conversation_user_relation
 -- ----------------------------
-DROP TABLE IF EXISTS `web_chat_user_relation`;
-CREATE TABLE `web_chat_user_relation`
+DROP TABLE IF EXISTS `web_chat_conversation_user_relation`;
+CREATE TABLE web_chat_conversation_user_relation
 (
-    `id`          bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
-    `send_uid`    bigint(20) UNSIGNED NOT NULL COMMENT '发送方的用户 id',
-    `accept_uid`  bigint(20) UNSIGNED NOT NULL COMMENT '接收方的用户 id',
-    `content`     longtext COMMENT '聊天内容',
-    `count`       int                          DEFAULT '0' COMMENT '未读消息的数量',
-    `chat_type`   int                          DEFAULT '0' COMMENT '聊天类型（0：私聊，1：群聊）',
-    `msg_type`    int                          DEFAULT '0' COMMENT '消息类型（0：通知消息，1：文本消息，2：图片消息，3：语音消息，4：视频消息，5：自定义消息）',
-    `create_time` datetime            NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `update_time` datetime            NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    PRIMARY KEY (`id`)
-) ENGINE = InnoDB
-  AUTO_INCREMENT = 13
-  DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_0900_ai_ci COMMENT ='聊天-用户关联表';
+    id               bigint unsigned AUTO_INCREMENT PRIMARY KEY,
+    conversation_id  bigint unsigned NOT NULL COMMENT '会话 id',
+    user_id          bigint unsigned NOT NULL COMMENT '用户 id',
+    last_read_msg_id bigint unsigned          DEFAULT NULL COMMENT '最后已读消息 id',
+    join_time        datetime        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_conversation_user (conversation_id, user_id)
+) COMMENT ='会话成员表';
+
+-- ----------------------------
+-- Table structure for web_chat_message
+-- ----------------------------
+DROP TABLE IF EXISTS `web_chat_message`;
+CREATE TABLE web_chat_message
+(
+    id              bigint unsigned AUTO_INCREMENT PRIMARY KEY COMMENT '消息 id',
+    conversation_id bigint unsigned NOT NULL COMMENT '会话 id',
+    send_uid        bigint unsigned NOT NULL COMMENT '发送者 id',
+    msg_type        tinyint         NOT NULL COMMENT '消息类型（0：通知，1：文本，2：图片，3：语音，4：视频，5：自定义）',
+    content         longtext COMMENT '消息内容',
+    create_time     datetime        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_conversation_time (conversation_id, create_time)
+) COMMENT ='聊天消息表';
 
 -- ----------------------------
 -- Table structure for web_comment
@@ -84,18 +84,18 @@ CREATE TABLE `web_chat_user_relation`
 DROP TABLE IF EXISTS `web_comment`;
 CREATE TABLE `web_comment`
 (
-    `id`                bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
-    `nid`               bigint(20) UNSIGNED          DEFAULT NULL COMMENT '笔记 id',
-    `uid`               bigint(20) UNSIGNED          DEFAULT NULL COMMENT '发布评论的用户 id',
-    `pid`               bigint(20) UNSIGNED          DEFAULT '0' COMMENT '根评论 id',
-    `reply_id`          bigint(20) UNSIGNED          DEFAULT '0' COMMENT '回复的评论 id',
-    `reply_uid`         bigint(20) UNSIGNED          DEFAULT '0' COMMENT '回复的用户 id',
-    `level`             int                          DEFAULT '0' COMMENT '评论的等级',
-    `content`           longtext COMMENT '评论的内容',
-    `like_count`        bigint(20) UNSIGNED          DEFAULT '0' COMMENT '点赞数量',
+    `id`                      bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
+    `nid`                     bigint(20) UNSIGNED          DEFAULT NULL COMMENT '笔记 id',
+    `uid`                     bigint(20) UNSIGNED          DEFAULT NULL COMMENT '发布评论的用户 id',
+    `pid`                     bigint(20) UNSIGNED          DEFAULT '0' COMMENT '根评论 id',
+    `reply_id`                bigint(20) UNSIGNED          DEFAULT '0' COMMENT '回复的评论 id',
+    `reply_uid`               bigint(20) UNSIGNED          DEFAULT '0' COMMENT '回复的用户 id',
+    `level`                   int                          DEFAULT '0' COMMENT '评论的等级',
+    `content`                 longtext COMMENT '评论的内容',
+    `like_count`              bigint(20) UNSIGNED          DEFAULT '0' COMMENT '点赞数量',
     `level_two_comment_count` bigint(20) UNSIGNED          DEFAULT '0' COMMENT '二级评论数量',
-    `create_time`       datetime            NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `update_time`       datetime            NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `create_time`             datetime            NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time`             datetime            NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB
   AUTO_INCREMENT = 38
@@ -127,6 +127,7 @@ CREATE TABLE `web_like_or_favorite`
 (
     `id`                  bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
     `uid`                 bigint(20) UNSIGNED NOT NULL COMMENT '点赞的用户',
+    `notify_uid`          bigint(20) UNSIGNED NOT NULL COMMENT '需要通知的用户',
     `like_or_favorite_id` bigint(20) UNSIGNED NOT NULL COMMENT '点赞或收藏的对象 id(可能是图片或者评论)',
     `type`                int                 NOT NULL COMMENT '点赞收藏类型（1：点赞笔记，2：点赞评论，3：收藏笔记，4：收藏专辑）',
     `create_time`         datetime            NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
@@ -306,7 +307,7 @@ CREATE TABLE `web_user`
     `user_cover`     varchar(255)                 DEFAULT NULL COMMENT '用户封面',
     `birthday`       varchar(50)                  DEFAULT NULL COMMENT '生日',
     `address`        varchar(50)                  DEFAULT NULL COMMENT '地址',
-    `note_count`    bigint(20) UNSIGNED          DEFAULT '0' COMMENT '笔记数量',
+    `note_count`     bigint(20) UNSIGNED          DEFAULT '0' COMMENT '笔记数量',
     `follow_count`   bigint(20) UNSIGNED          DEFAULT '0' COMMENT '关注数量',
     `follower_count` bigint(20) UNSIGNED          DEFAULT '0' COMMENT '粉丝数量',
     `login_ip`       varchar(128)                 DEFAULT '' COMMENT '最后登录IP',

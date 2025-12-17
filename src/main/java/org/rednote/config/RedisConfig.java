@@ -12,17 +12,17 @@ public class RedisConfig {
 
     @Bean
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory){
-        // 创建RedisTemplate对象
+        // 创建 RedisTemplate 对象
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         // 设置连接工厂
         template.setConnectionFactory(connectionFactory);
-        // 创建JSON序列化工具
+        // 创建 JSON 序列化工具
         GenericJackson2JsonRedisSerializer jsonRedisSerializer =
                 new GenericJackson2JsonRedisSerializer();
-        // 设置Key的序列化
+        // 设置 Key 的序列化
         template.setKeySerializer(RedisSerializer.string());
         template.setHashKeySerializer(RedisSerializer.string());
-        // 设置Value的序列化
+        // 设置 Value 的序列化
         template.setValueSerializer(jsonRedisSerializer);
         template.setHashValueSerializer(jsonRedisSerializer);
         // 返回

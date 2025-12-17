@@ -13,9 +13,11 @@ import org.rednote.domain.entity.WebFollow;
 import org.rednote.domain.entity.WebUser;
 import org.rednote.domain.vo.FollowVO;
 import org.rednote.domain.vo.TrendVO;
+import org.rednote.enums.UncheckedMessageEnum;
 import org.rednote.mapper.WebFollowMapper;
 import org.rednote.mapper.WebNoteMapper;
 import org.rednote.mapper.WebUserMapper;
+import org.rednote.service.IWebChatService;
 import org.rednote.service.IWebFollowService;
 import org.rednote.service.IWebLikeOrFavoriteService;
 import org.rednote.utils.UserHolder;
@@ -37,6 +39,7 @@ public class WebFollowServiceImpl extends ServiceImpl<WebFollowMapper, WebFollow
     private final WebNoteMapper noteMapper;
     private final WebUserMapper userMapper;
     private final IWebLikeOrFavoriteService likeOrFavoriteService;
+    private final IWebChatService chatService;
     private final StringRedisTemplate stringRedisTemplate;
 
     /**
@@ -133,11 +136,14 @@ public class WebFollowServiceImpl extends ServiceImpl<WebFollowMapper, WebFollow
             currentUser.setFollowCount(currentUser.getFollowCount() - 1);
             followedUser.setFollowerCount(followedUser.getFollowerCount() - 1);
             this.remove(new QueryWrapper<WebFollow>().eq("uid", userId).eq("fid", followId));
+            // 消息推送
+            chatService.decreaseUncheckedMessageCount(UncheckedMessageEnum.FOLLOW_COUNT, followId, 1);
         } else {
             currentUser.setFollowCount(currentUser.getFollowCount() + 1);
             followedUser.setFollowerCount(followedUser.getFollowerCount() + 1);
             this.save(follow);
-            // TODO websocket 消息推送
+            // 消息推送
+            chatService.increaseUncheckedMessageCount(UncheckedMessageEnum.FOLLOW_COUNT, followId, 1);
         }
         userMapper.updateById(currentUser);
         userMapper.updateById(followedUser);

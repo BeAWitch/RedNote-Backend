@@ -13,12 +13,16 @@ import org.rednote.domain.entity.WebComment;
 import org.rednote.domain.entity.WebLikeOrFavorite;
 import org.rednote.domain.entity.WebNote;
 import org.rednote.domain.entity.WebUser;
+import org.rednote.domain.entity.WebUserNoteRelation;
 import org.rednote.domain.vo.CommentVO;
+import org.rednote.enums.UncheckedMessageEnum;
 import org.rednote.exception.RedNoteException;
 import org.rednote.mapper.WebCommentMapper;
 import org.rednote.mapper.WebLikeOrFavoriteMapper;
 import org.rednote.mapper.WebNoteMapper;
 import org.rednote.mapper.WebUserMapper;
+import org.rednote.mapper.WebUserNoteRelationMapper;
+import org.rednote.service.IWebChatService;
 import org.rednote.service.IWebCommentService;
 import org.rednote.utils.UserHolder;
 import org.springframework.stereotype.Service;
@@ -42,6 +46,8 @@ public class WebCommentServiceImpl extends ServiceImpl<WebCommentMapper, WebComm
     private final WebNoteMapper noteMapper;
     private final WebUserMapper userMapper;
     private final WebLikeOrFavoriteMapper likeOrFavoriteMapper;
+    private final WebUserNoteRelationMapper userNoteRelationMapper;
+    private final IWebChatService chatService;
 
     /**
      * 保存评论
@@ -79,7 +85,13 @@ public class WebCommentServiceImpl extends ServiceImpl<WebCommentMapper, WebComm
             }
         }
 
-        // TODO 消息推送
+        // 消息推送
+        if (!commentDTO.getNoteUid().equals(currentUid)) {
+            chatService.increaseUncheckedMessageCount(UncheckedMessageEnum.COMMENT_COUNT, commentDTO.getNoteUid(), 1);
+        }
+        if (!commentDTO.getReplyUid().equals(currentUid)) {
+            chatService.increaseUncheckedMessageCount(UncheckedMessageEnum.COMMENT_COUNT, commentDTO.getReplyUid(), 1);
+        }
 
         return commentVo;
     }
@@ -156,10 +168,16 @@ public class WebCommentServiceImpl extends ServiceImpl<WebCommentMapper, WebComm
         Page<CommentVO> result = new Page<>();
         Long currentUid = UserHolder.getUserId();
 
+        // 查询用户所有笔记的 ID
+        List<Long> nidList = userNoteRelationMapper
+                .selectList(new QueryWrapper<WebUserNoteRelation>().eq("uid", currentUid))
+                .stream()
+                .map(WebUserNoteRelation::getNid)
+                .toList();
         // 查询所有与当前用户相关的评论
         Page<WebComment> commentPage = this.page(new Page<>((int) currentPage, (int) pageSize),
                 new QueryWrapper<WebComment>().
-                        or(e -> e.eq("note_uid", currentUid)
+                        or(e -> e.in("nid", nidList)
                                 .or()
                                 .eq("reply_uid", currentUid))
                         .ne("uid", currentUid).orderByDesc("create_time"));
