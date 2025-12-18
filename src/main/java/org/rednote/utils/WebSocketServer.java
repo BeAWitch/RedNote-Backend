@@ -1,6 +1,5 @@
 package org.rednote.utils;
 
-import com.alibaba.fastjson2.JSON;
 import jakarta.websocket.OnClose;
 import jakarta.websocket.OnError;
 import jakarta.websocket.OnMessage;
@@ -9,7 +8,7 @@ import jakarta.websocket.Session;
 import jakarta.websocket.server.PathParam;
 import jakarta.websocket.server.ServerEndpoint;
 import lombok.extern.slf4j.Slf4j;
-import org.rednote.domain.dto.Message;
+import org.rednote.domain.dto.WSMessageDTO;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -19,7 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Websocket 服务
  */
-@ServerEndpoint(value = "/web/ws/{uid}")
+@ServerEndpoint(value = "/web/ws/{uid}", encoders = WSMessageEncoder.class)
 @Component
 @Slf4j
 public class WebSocketServer {
@@ -32,12 +31,12 @@ public class WebSocketServer {
     private final Object lockObj = new Object();
 
     // 发送消息
-    public void sendMessage(Session session, Message message) {
+    public void sendMessage(Session session, WSMessageDTO wsMessageDTO) {
         if (session != null) {
             synchronized (lockObj) {
-                log.info("发送数据={}", message);
+                log.info("发送数据={}", wsMessageDTO);
                 try {
-                    session.getBasicRemote().sendObject(JSON.toJSONString(message));
+                    session.getBasicRemote().sendObject(wsMessageDTO);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -46,20 +45,20 @@ public class WebSocketServer {
     }
 
     // 给指定用户发送信息
-    public void sendMessage(Message message) {
-        Session session = SESSION_POOLS.get(message.getAcceptUid());
+    public void sendMessage(WSMessageDTO wsMessageDTO) {
+        Session session = SESSION_POOLS.get(wsMessageDTO.getAcceptUid());
         try {
-            sendMessage(session, message);
+            sendMessage(session, wsMessageDTO);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     // 群发消息
-    public void broadcast(Message message) {
+    public void broadcast(WSMessageDTO wsMessageDTO) {
         for (Session session : SESSION_POOLS.values()) {
             try {
-                sendMessage(session, message);
+                sendMessage(session, wsMessageDTO);
             } catch (Exception e) {
                 e.printStackTrace();
             }

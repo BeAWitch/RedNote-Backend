@@ -72,8 +72,7 @@ CREATE TABLE web_chat_message
     id              bigint unsigned AUTO_INCREMENT PRIMARY KEY COMMENT '消息 id',
     conversation_id bigint unsigned NOT NULL COMMENT '会话 id',
     send_uid        bigint unsigned NOT NULL COMMENT '发送者 id',
-    msg_type        tinyint         NOT NULL COMMENT '消息类型（0：通知，1：文本，2：图片，3：语音，4：视频，5：自定义）',
-    content         longtext COMMENT '消息内容',
+    content         json            NOT NULL COMMENT '消息内容',
     create_time     datetime        NOT NULL DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_conversation_time (conversation_id, create_time)
 ) COMMENT ='聊天消息表';

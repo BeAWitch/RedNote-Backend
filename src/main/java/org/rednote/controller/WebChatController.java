@@ -5,11 +5,12 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.rednote.domain.dto.MessageCount;
-import org.rednote.domain.dto.Message;
+import org.rednote.domain.dto.MessageCountDTO;
+import org.rednote.domain.dto.MessageDTO;
 import org.rednote.domain.dto.Result;
 import org.rednote.domain.vo.ChatMessageVO;
 import org.rednote.domain.vo.ChatConversationVO;
+import org.rednote.enums.UncheckedMessageEnum;
 import org.rednote.service.IWebChatService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,8 +31,8 @@ public class WebChatController {
 
     @Operation(summary = "发送消息", description = "发送消息")
     @PostMapping("sendMessage")
-    public Result<?> sendMessage(@Parameter(description = "消息实体") @RequestBody Message message) {
-        chatService.sendMessage(message);
+    public Result<?> sendMessage(@Parameter(description = "消息实体") @RequestBody MessageDTO messageDTO) {
+        chatService.sendMessage(messageDTO);
         return Result.ok();
     }
 
@@ -54,13 +55,13 @@ public class WebChatController {
     @Operation(summary = "获取所有未读消息数量", description = "获取所有未读消息数量")
     @GetMapping("getUncheckedMessageCount")
     public Result<?> getMessageCount() {
-        MessageCount messageCount = chatService.getUncheckedMessageCount();
-        return Result.ok(messageCount);
+        MessageCountDTO messageCountDTO = chatService.getUncheckedMessageCount();
+        return Result.ok(messageCountDTO);
     }
 
     @Operation(summary = "清除未确认消息数量", description = "清除未确认消息数量")
     @GetMapping("clearUncheckedMessageCount")
-    public Result<?> clearUncheckedMessageCount(@Parameter(description = "类型（0：点赞，1：评论，2：关注）") Integer type) {
+    public Result<?> clearUncheckedMessageCount(@Parameter(description = "类型（点赞、评论、关注）") UncheckedMessageEnum type) {
         chatService.clearUncheckedMessageCount(type);
         return Result.ok();
     }

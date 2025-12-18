@@ -20,7 +20,9 @@ public class MvcConfig implements WebMvcConfigurer {
         registry.addInterceptor(new LoginInterceptor())
                 .excludePathPatterns(
                         "/web/auth/**",      // 登录
-                        "/web/chat/sendMsg/**",
+                        "/web/search/note/**",
+                        "/web/search/record/**",
+                        "/web/category/getCategoryTreeData/**",
                         "/uploads/**",       // 本地文件访问路径
                         "/swagger-ui.html",
                         "/swagger-ui/**",

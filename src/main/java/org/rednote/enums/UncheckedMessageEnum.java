@@ -5,10 +5,11 @@ import lombok.Getter;
 @Getter
 public enum UncheckedMessageEnum {
 
-    LIKE_OR_FAVORITE_COUNT(0, "likeOrFavorite"),
-    COMMENT_COUNT(1, "comment"),
-    FOLLOW_COUNT(2, "follow"),
-    MESSAGE_COUNT(3, "message");
+    LIKE_OR_FAVORITE(0, "点赞或收藏"),
+    COMMENT(1, "评论"),
+    FOLLOW(2, "关注"),
+    CHAT(3, "聊天"),
+    TREND(4, "动态");
 
     private final Integer code;
     private final String type;

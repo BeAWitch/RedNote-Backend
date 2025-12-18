@@ -24,11 +24,6 @@ public class WebChatMessage extends BaseEntity {
     private Long sendUid;
 
     /**
-    * 消息类型（0：通知，1：文本，2：图片，3：语音，4：视频，5：自定义）
-    */
-    private Integer msgType;
-
-    /**
     * 消息内容
     */
     private String content;

@@ -11,15 +11,35 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.rednote.constant.RedisConstants;
 import org.rednote.domain.dto.NoteDTO;
-import org.rednote.domain.entity.*;
+import org.rednote.domain.dto.WSMessageDTO;
+import org.rednote.domain.entity.WebAlbumNoteRelation;
+import org.rednote.domain.entity.WebComment;
+import org.rednote.domain.entity.WebFollow;
+import org.rednote.domain.entity.WebLikeOrFavorite;
+import org.rednote.domain.entity.WebNote;
+import org.rednote.domain.entity.WebTag;
+import org.rednote.domain.entity.WebTagNoteRelation;
+import org.rednote.domain.entity.WebUser;
+import org.rednote.domain.entity.WebUserNoteRelation;
 import org.rednote.domain.vo.NoteVO;
 import org.rednote.enums.ResultCodeEnum;
+import org.rednote.enums.UncheckedMessageEnum;
 import org.rednote.exception.RedNoteException;
-import org.rednote.mapper.*;
+import org.rednote.mapper.WebAlbumNoteRelationMapper;
+import org.rednote.mapper.WebCommentMapper;
+import org.rednote.mapper.WebFollowMapper;
+import org.rednote.mapper.WebLikeOrFavoriteMapper;
+import org.rednote.mapper.WebNoteMapper;
+import org.rednote.mapper.WebTagMapper;
+import org.rednote.mapper.WebTagNoteRelationMapper;
+import org.rednote.mapper.WebUserMapper;
+import org.rednote.mapper.WebUserNoteRelationMapper;
+import org.rednote.service.IWebChatService;
 import org.rednote.service.IWebFollowService;
 import org.rednote.service.IWebNoteService;
 import org.rednote.service.IWebOssService;
 import org.rednote.utils.UserHolder;
+import org.rednote.utils.WebSocketServer;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,6 +69,8 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
     private final IWebOssService ossService;
     private final WebFollowMapper followMapper;
     private final StringRedisTemplate stringRedisTemplate;
+    private final IWebChatService chatService;
+    private final WebSocketServer webSocketServer;
 
     /**
      * 获取笔记
@@ -139,7 +161,7 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
         // 绑定用户与笔记关系
         bindUserToNote(note);
 
-        // 推送至粉丝收件箱
+        // 消息推送
         pushToFollowers(currentUid, note.getId());
 
         return note.getId();
@@ -318,6 +340,15 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
         for (Long followerId : followerIdList) {
             String key = RedisConstants.TREND_KEY + followerId;
             stringRedisTemplate.opsForZSet().add(key, nid.toString(), System.currentTimeMillis());
+
+            // 更新未查看动态数量
+            chatService.increaseUncheckedMessageCount(UncheckedMessageEnum.TREND, followerId, 1L);
+            // Websocket 消息推送
+            webSocketServer.sendMessage(new WSMessageDTO()
+                    .setAcceptUid(followerId)
+                    .setType(UncheckedMessageEnum.TREND)
+                    .setContent(1L)
+            );
         }
     }
 }

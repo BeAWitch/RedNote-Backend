@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.rednote.domain.dto.CommentDTO;
+import org.rednote.domain.dto.WSMessageDTO;
 import org.rednote.domain.entity.WebComment;
 import org.rednote.domain.entity.WebLikeOrFavorite;
 import org.rednote.domain.entity.WebNote;
@@ -25,6 +26,7 @@ import org.rednote.mapper.WebUserNoteRelationMapper;
 import org.rednote.service.IWebChatService;
 import org.rednote.service.IWebCommentService;
 import org.rednote.utils.UserHolder;
+import org.rednote.utils.WebSocketServer;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,6 +50,7 @@ public class WebCommentServiceImpl extends ServiceImpl<WebCommentMapper, WebComm
     private final WebLikeOrFavoriteMapper likeOrFavoriteMapper;
     private final WebUserNoteRelationMapper userNoteRelationMapper;
     private final IWebChatService chatService;
+    private final WebSocketServer webSocketServer;
 
     /**
      * 保存评论
@@ -85,12 +88,24 @@ public class WebCommentServiceImpl extends ServiceImpl<WebCommentMapper, WebComm
             }
         }
 
-        // 消息推送
+        // 更新 Redis 和 Websocket 消息推送
         if (!commentDTO.getNoteUid().equals(currentUid)) {
-            chatService.increaseUncheckedMessageCount(UncheckedMessageEnum.COMMENT_COUNT, commentDTO.getNoteUid(), 1);
+            chatService.increaseUncheckedMessageCount(UncheckedMessageEnum.COMMENT, commentDTO.getNoteUid(), 1L);
+            // Websocket 消息推送
+            webSocketServer.sendMessage(new WSMessageDTO()
+                    .setAcceptUid(commentDTO.getNoteUid())
+                    .setType(UncheckedMessageEnum.COMMENT)
+                    .setContent(1L)
+            );
         }
-        if (!commentDTO.getReplyUid().equals(currentUid)) {
-            chatService.increaseUncheckedMessageCount(UncheckedMessageEnum.COMMENT_COUNT, commentDTO.getReplyUid(), 1);
+        if (!commentDTO.getReplyUid().equals(commentDTO.getNoteUid()) && !commentDTO.getReplyUid().equals(currentUid)) {
+            chatService.increaseUncheckedMessageCount(UncheckedMessageEnum.COMMENT, commentDTO.getReplyUid(), 1);
+            // Websocket 消息推送
+            webSocketServer.sendMessage(new WSMessageDTO()
+                    .setAcceptUid(commentDTO.getReplyUid())
+                    .setType(UncheckedMessageEnum.COMMENT)
+                    .setContent(1L)
+            );
         }
 
         return commentVo;

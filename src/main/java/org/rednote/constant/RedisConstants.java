@@ -27,5 +27,6 @@ public class RedisConstants {
     public static final String UNCHECKED_FOLLOW_KEY = "unchecked:follow:";
     public static final String UNCHECKED_COMMENT_KEY = "unchecked:comment:";
     public static final String UNCHECKED_MESSAGE_KEY = "unchecked:message:";
+    public static final String UNCHECKED_TREND_KEY = "unchecked:trend:";
 
 }

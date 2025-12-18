@@ -8,7 +8,7 @@ import java.io.Serializable;
  * 消息数量
  */
 @Data
-public class MessageCount implements Serializable {
+public class MessageCountDTO implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private String uid;
@@ -20,4 +20,6 @@ public class MessageCount implements Serializable {
     private Long followCount;
 
     private Long chatCount;
+
+    private Long trendCount;
 }

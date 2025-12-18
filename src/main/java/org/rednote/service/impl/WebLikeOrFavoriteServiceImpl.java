@@ -11,6 +11,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.rednote.constant.RedisConstants;
 import org.rednote.domain.dto.LikeOrFavoriteDTO;
+import org.rednote.domain.dto.WSMessageDTO;
 import org.rednote.domain.entity.WebAlbum;
 import org.rednote.domain.entity.WebAlbumNoteRelation;
 import org.rednote.domain.entity.WebComment;
@@ -29,6 +30,7 @@ import org.rednote.mapper.WebUserMapper;
 import org.rednote.service.IWebChatService;
 import org.rednote.service.IWebLikeOrFavoriteService;
 import org.rednote.utils.UserHolder;
+import org.rednote.utils.WebSocketServer;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,6 +56,7 @@ public class WebLikeOrFavoriteServiceImpl extends ServiceImpl<WebLikeOrFavoriteM
     private final WebAlbumNoteRelationMapper albumNoteRelationMapper;
     private final IWebChatService chatService;
     private final StringRedisTemplate stringRedisTemplate;
+    private final WebSocketServer webSocketServer;
 
     /**
      * 点赞或收藏
@@ -91,10 +94,17 @@ public class WebLikeOrFavoriteServiceImpl extends ServiceImpl<WebLikeOrFavoriteM
             // 不是当前用户才进行通知
             if (!likeOrFavoriteDTO.getNotifyUid().equals(currentUid)) {
                 Long publishUid = likeOrFavoriteDTO.getNotifyUid();
+                // 更新 Redis
                 chatService.increaseUncheckedMessageCount(
-                        UncheckedMessageEnum.LIKE_OR_FAVORITE_COUNT,
+                        UncheckedMessageEnum.LIKE_OR_FAVORITE,
                         publishUid,
-                        1
+                        1L
+                );
+                // Websocket 消息推送
+                webSocketServer.sendMessage(new WSMessageDTO()
+                        .setAcceptUid(publishUid)
+                        .setType(UncheckedMessageEnum.LIKE_OR_FAVORITE)
+                        .setContent(1L)
                 );
             }
         }
@@ -250,18 +260,30 @@ public class WebLikeOrFavoriteServiceImpl extends ServiceImpl<WebLikeOrFavoriteM
                     albumNoteRelation.setAid(album.getId());
                     albumNoteRelationMapper.insert(albumNoteRelation);
                 } else {
-                    List<WebAlbumNoteRelation> albumNoteRelationList = albumNoteRelationMapper.selectList(new QueryWrapper<WebAlbumNoteRelation>().eq("nid", favoriteNote.getId()));
-                    Set<Long> aids = albumNoteRelationList.stream().map(WebAlbumNoteRelation::getAid).collect(Collectors.toSet());
+                    List<WebAlbumNoteRelation> albumNoteRelationList = albumNoteRelationMapper
+                            .selectList(new QueryWrapper<WebAlbumNoteRelation>().eq("nid", favoriteNote.getId()));
+                    Set<Long> aids = albumNoteRelationList.stream()
+                            .map(WebAlbumNoteRelation::getAid)
+                            .collect(Collectors.toSet());
                     List<WebAlbum> albumList = albumMapper.selectBatchIds(aids);
-                    WebAlbum album = albumList.stream().filter(item -> item.getUid().equals(currentUid)).findFirst().orElse(null);
+                    WebAlbum album = albumList.stream()
+                            .filter(item -> item.getUid().equals(currentUid))
+                            .findFirst()
+                            .orElse(null);
                     Integer imgCount = favoriteNote.getCount();
-                    long nums = album.getNoteCount() - imgCount;
-                    if (nums <= 0) {
-                        album.setAlbumCover(null);
+                    long nums = 0;
+                    if (album != null) {
+                        nums = album.getNoteCount() - imgCount;
+                        if (nums <= 0) {
+                            album.setAlbumCover(null);
+                        }
+                        album.setNoteCount(nums);
+                        albumMapper.updateById(album);
+                        albumNoteRelationMapper.delete(new QueryWrapper<WebAlbumNoteRelation>()
+                                .eq("aid", album.getId())
+                                .eq("nid", favoriteNote.getId())
+                        );
                     }
-                    album.setNoteCount(nums);
-                    albumMapper.updateById(album);
-                    albumNoteRelationMapper.delete(new QueryWrapper<WebAlbumNoteRelation>().eq("aid", album.getId()).eq("nid", favoriteNote.getId()));
                 }
                 break;
             default:

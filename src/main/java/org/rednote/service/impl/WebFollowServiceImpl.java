@@ -2,6 +2,7 @@ package org.rednote.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -9,7 +10,9 @@ import lombok.RequiredArgsConstructor;
 import org.rednote.constant.RedisConstants;
 import org.rednote.domain.dto.LikeOrFavoriteDTO;
 import org.rednote.domain.dto.ScrollResult;
+import org.rednote.domain.dto.WSMessageDTO;
 import org.rednote.domain.entity.WebFollow;
+import org.rednote.domain.entity.WebNote;
 import org.rednote.domain.entity.WebUser;
 import org.rednote.domain.vo.FollowVO;
 import org.rednote.domain.vo.TrendVO;
@@ -21,6 +24,7 @@ import org.rednote.service.IWebChatService;
 import org.rednote.service.IWebFollowService;
 import org.rednote.service.IWebLikeOrFavoriteService;
 import org.rednote.utils.UserHolder;
+import org.rednote.utils.WebSocketServer;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
@@ -41,6 +45,7 @@ public class WebFollowServiceImpl extends ServiceImpl<WebFollowMapper, WebFollow
     private final IWebLikeOrFavoriteService likeOrFavoriteService;
     private final IWebChatService chatService;
     private final StringRedisTemplate stringRedisTemplate;
+    private final WebSocketServer webSocketServer;
 
     /**
      * 获取关注用户的所有动态
@@ -81,7 +86,10 @@ public class WebFollowServiceImpl extends ServiceImpl<WebFollowMapper, WebFollow
         minCount = minTime == lastTime ? minCount : minCount + offset;
 
         // 查询笔记并填充 VO
-        List<TrendVO> trendVOS = noteMapper.selectBatchIds(nids).stream()
+        List<TrendVO> trendVOS = noteMapper.selectList(new LambdaQueryWrapper<>(WebNote.class)
+                        .in(WebNote::getId, nids)
+                        .orderByDesc(WebNote::getCreateTime))
+                .stream()
                 //.filter(note -> note.getAuditStatus() == 1) // TODO 审核验证
                 .map(note -> {
                     TrendVO trendVO = new TrendVO();
@@ -136,14 +144,26 @@ public class WebFollowServiceImpl extends ServiceImpl<WebFollowMapper, WebFollow
             currentUser.setFollowCount(currentUser.getFollowCount() - 1);
             followedUser.setFollowerCount(followedUser.getFollowerCount() - 1);
             this.remove(new QueryWrapper<WebFollow>().eq("uid", userId).eq("fid", followId));
-            // 消息推送
-            chatService.decreaseUncheckedMessageCount(UncheckedMessageEnum.FOLLOW_COUNT, followId, 1);
+            // 更新 Redis
+            chatService.decreaseUncheckedMessageCount(UncheckedMessageEnum.FOLLOW, followId, 1L);
+            // Websocket 消息推送
+            webSocketServer.sendMessage(new WSMessageDTO()
+                    .setAcceptUid(followId)
+                    .setType(UncheckedMessageEnum.FOLLOW)
+                    .setContent(-1L)
+            );
         } else {
             currentUser.setFollowCount(currentUser.getFollowCount() + 1);
             followedUser.setFollowerCount(followedUser.getFollowerCount() + 1);
             this.save(follow);
-            // 消息推送
-            chatService.increaseUncheckedMessageCount(UncheckedMessageEnum.FOLLOW_COUNT, followId, 1);
+            // 更新 Redis
+            chatService.increaseUncheckedMessageCount(UncheckedMessageEnum.FOLLOW, followId, 1L);
+            // Websocket 消息推送
+            webSocketServer.sendMessage(new WSMessageDTO()
+                    .setAcceptUid(followId)
+                    .setType(UncheckedMessageEnum.COMMENT)
+                    .setContent(1L)
+            );
         }
         userMapper.updateById(currentUser);
         userMapper.updateById(followedUser);

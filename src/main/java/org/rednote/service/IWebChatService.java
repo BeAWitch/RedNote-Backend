@@ -2,8 +2,8 @@ package org.rednote.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
-import org.rednote.domain.dto.MessageCount;
-import org.rednote.domain.dto.Message;
+import org.rednote.domain.dto.MessageCountDTO;
+import org.rednote.domain.dto.MessageDTO;
 import org.rednote.domain.entity.WebChatMessage;
 import org.rednote.domain.vo.ChatConversationVO;
 import org.rednote.domain.vo.ChatMessageVO;
@@ -19,9 +19,9 @@ public interface IWebChatService extends IService<WebChatMessage> {
     /**
      * 发送消息
      *
-     * @param message 消息
+     * @param messageDTO 消息
      */
-    void sendMessage(Message message);
+    void sendMessage(MessageDTO messageDTO);
 
     /**
      * 获取所有聊天记录
@@ -40,14 +40,14 @@ public interface IWebChatService extends IService<WebChatMessage> {
     /**
      * 获取所有所有未读消息数量
      */
-    MessageCount getUncheckedMessageCount();
+    MessageCountDTO getUncheckedMessageCount();
 
     /**
      * 清除未确认消息数量
      *
-     * @param type    类型（0：点赞，1：评论，2：关注）
+     * @param type    类型（点赞、评论、关注）
      */
-    void clearUncheckedMessageCount(Integer type);
+    void clearUncheckedMessageCount(UncheckedMessageEnum type);
 
     /**
      * 增加未确认消息数量
