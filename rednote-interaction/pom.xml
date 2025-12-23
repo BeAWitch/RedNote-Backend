@@ -10,6 +10,13 @@
     </parent>
 
     <artifactId>rednote-interaction</artifactId>
+    <version>1.0.0</version>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>rednote-interaction-api</module>
+        <module>rednote-interaction-service</module>
+    </modules>
 
     <properties>
         <maven.compiler.source>20</maven.compiler.source>

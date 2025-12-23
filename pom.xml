@@ -22,8 +22,6 @@
         <module>rednote-common</module>
         <module>rednote-gateway</module>
         <module>rednote-interaction</module>
-        <module>rednote-interaction/rednote-interaction-api</module>
-        <module>rednote-interaction/rednote-interaction-service</module>
         <module>rednote-user</module>
         <module>rednote-note</module>
         <module>rednote-oss</module>

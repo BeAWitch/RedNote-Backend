@@ -5,9 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.rednote</groupId>
-        <artifactId>rednote-backend</artifactId>
+        <artifactId>rednote-interaction</artifactId>
         <version>1.0.0</version>
-        <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <artifactId>rednote-interaction-service</artifactId>
