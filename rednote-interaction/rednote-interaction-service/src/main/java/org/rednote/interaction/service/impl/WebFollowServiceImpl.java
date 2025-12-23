@@ -161,8 +161,8 @@ public class WebFollowServiceImpl extends ServiceImpl<WebFollowMapper, WebFollow
                     .setContent(1L)
             );
         }
-        userServiceFeign.updateUser(currentUser);
-        userServiceFeign.updateUser(followedUser);
+        userServiceFeign.updateUserById(currentUser);
+        userServiceFeign.updateUserById(followedUser);
     }
 
     /**

@@ -17,6 +17,6 @@ public interface UserServiceFeign {
     @GetMapping("/web/user/getUserByIds")
     List<WebUser> getUserByIds(List<Long> ids);
 
-    @PostMapping("/web/user/updateUser")
-    boolean updateUser(WebUser user);
+    @PostMapping("/web/user/updateUserById")
+    boolean updateUserById(WebUser user);
 }

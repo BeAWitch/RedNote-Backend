@@ -1,7 +1,5 @@
 package org.rednote.user.service.impl;
 
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson2.JSON;
@@ -10,17 +8,12 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.rednote.common.exception.RedNoteException;
-import org.rednote.common.utils.UserHolder;
 import org.rednote.user.api.entity.WebUser;
+import org.rednote.user.feign.OssServiceFeign;
 import org.rednote.user.mapper.WebUserMapper;
 import org.rednote.user.service.IWebUserService;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * 用户
@@ -30,7 +23,7 @@ import java.util.stream.Collectors;
 public class WebUserServiceImpl extends ServiceImpl<WebUserMapper, WebUser> implements IWebUserService {
 
     private final WebUserMapper userMapper;
-    private final IWebOssService ossService;
+    private final OssServiceFeign ossServiceFeign;
 
     /**
      * 更新用户信息
@@ -52,7 +45,7 @@ public class WebUserServiceImpl extends ServiceImpl<WebUserMapper, WebUser> impl
         webUser.setTags(user.getTags());
 
         // 上传头像
-        String avatarUrl = ossService.save(avatar);
+        String avatarUrl = ossServiceFeign.uploadFile(avatar);
         if (StrUtil.isEmpty(avatarUrl)) {
             throw new RedNoteException("头像上传失败！");
         }

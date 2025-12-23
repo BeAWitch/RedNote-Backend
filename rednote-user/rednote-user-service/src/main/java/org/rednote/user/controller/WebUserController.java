@@ -56,8 +56,8 @@ public class WebUserController {
      */
 
     @Operation(hidden = true)
-    @PostMapping("updateUser")
-    public boolean updateUser(WebUser user) {
+    @PostMapping("updateUserById")
+    public boolean updateUserById(WebUser user) {
         return userService.updateById(user);
     }
 
