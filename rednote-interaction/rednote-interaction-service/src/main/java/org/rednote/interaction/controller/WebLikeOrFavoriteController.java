@@ -1,5 +1,6 @@
 package org.rednote.interaction.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -7,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.rednote.common.domain.dto.Result;
 import org.rednote.interaction.api.dto.LikeOrFavoriteDTO;
+import org.rednote.interaction.api.entity.WebLikeOrFavorite;
 import org.rednote.interaction.api.vo.LikeOrFavoriteVO;
 import org.rednote.interaction.service.IWebLikeOrFavoriteService;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,7 +16,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @Tag(name = "点赞和收藏管理", description = "点赞和收藏相关接口")
 @RequestMapping("/web/likeOrFavorite")
@@ -47,5 +52,33 @@ public class WebLikeOrFavoriteController {
             @Parameter(description = "每页大小") @PathVariable long pageSize) {
         Page<LikeOrFavoriteVO> pageInfo = likeOrFavoriteService.getLikeAndFavoriteInfo(currentPage, pageSize);
         return Result.ok(pageInfo);
+    }
+
+    /**
+     * 以下用于远程调用
+     */
+
+    @Operation(hidden = true)
+    @GetMapping("getLikeOrFavoriteByNidAndUid")
+    public List<WebLikeOrFavorite> getLikeOrFavoriteByNidAndUid(
+            @RequestParam("nid") Long nid, @RequestParam("uid") Long uid) {
+        return likeOrFavoriteService.lambdaQuery()
+                .eq(WebLikeOrFavorite::getLikeOrFavoriteId, nid)
+                .eq(WebLikeOrFavorite::getUid, uid)
+                .list();
+    }
+
+    @Operation(hidden = true)
+    @PostMapping("deleteLikeOrFavoriteByObjId")
+    public boolean deleteLikeOrFavoriteByObjId(Long objId) {
+        return likeOrFavoriteService.remove(new LambdaQueryWrapper<>(WebLikeOrFavorite.class)
+                .eq(WebLikeOrFavorite::getLikeOrFavoriteId, objId));
+    }
+
+    @Operation(hidden = true)
+    @PostMapping("deleteLikeOrFavoriteByObjIds")
+    public boolean deleteLikeOrFavoriteByObjIds(List<Long> objIds) {
+        return likeOrFavoriteService.remove(new LambdaQueryWrapper<>(WebLikeOrFavorite.class)
+                .in(WebLikeOrFavorite::getLikeOrFavoriteId, objIds));
     }
 }

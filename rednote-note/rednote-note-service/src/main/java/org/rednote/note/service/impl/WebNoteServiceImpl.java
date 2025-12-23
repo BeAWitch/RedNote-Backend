@@ -14,6 +14,12 @@ import org.rednote.common.constant.RedisConstants;
 import org.rednote.common.enums.ResultCodeEnum;
 import org.rednote.common.exception.RedNoteException;
 import org.rednote.common.utils.UserHolder;
+import org.rednote.interaction.api.dto.WSMessageDTO;
+import org.rednote.interaction.api.entity.WebComment;
+import org.rednote.interaction.api.entity.WebFollow;
+import org.rednote.interaction.api.entity.WebLikeOrFavorite;
+import org.rednote.interaction.api.enums.UncheckedMessageEnum;
+import org.rednote.interaction.api.util.WebSocketServer;
 import org.rednote.note.api.dto.NoteDTO;
 import org.rednote.note.api.entity.WebAlbumNoteRelation;
 import org.rednote.note.api.entity.WebNote;
@@ -21,17 +27,23 @@ import org.rednote.note.api.entity.WebTag;
 import org.rednote.note.api.entity.WebTagNoteRelation;
 import org.rednote.note.api.entity.WebUserNoteRelation;
 import org.rednote.note.api.vo.NoteVO;
+import org.rednote.note.feign.InteractionServiceFeign;
+import org.rednote.note.feign.OssServiceFeign;
+import org.rednote.note.feign.UserServiceFeign;
+import org.rednote.note.mapper.WebAlbumNoteRelationMapper;
 import org.rednote.note.mapper.WebNoteMapper;
 import org.rednote.note.mapper.WebTagMapper;
 import org.rednote.note.mapper.WebTagNoteRelationMapper;
 import org.rednote.note.mapper.WebUserNoteRelationMapper;
 import org.rednote.note.service.IWebNoteService;
+import org.rednote.user.api.entity.WebUser;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -43,18 +55,14 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> implements IWebNoteService {
 
-    private final WebUserMapper userMapper;
+    private final UserServiceFeign userServiceFeign;
+    private final InteractionServiceFeign interactionServiceFeign;
     private final WebTagNoteRelationMapper tagNoteRelationMapper;
     private final WebUserNoteRelationMapper userNoteRelationMapper;
     private final WebTagMapper tagMapper;
-    private final IWebFollowService followService;
-    private final WebLikeOrFavoriteMapper likeOrCollectMapper;
-    private final WebCommentMapper commentMapper;
     private final WebAlbumNoteRelationMapper albumNoteRelationMapper;
-    private final IWebOssService ossService;
-    private final WebFollowMapper followMapper;
+    private final OssServiceFeign ossServiceFeign;
     private final StringRedisTemplate stringRedisTemplate;
-    private final IWebChatService chatService;
     private final WebSocketServer webSocketServer;
 
     /**
@@ -73,20 +81,18 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
         note.setViewCount(note.getViewCount() + 1);
         saveOrUpdate(note);
 
-        WebUser user = userMapper.selectById(note.getUid());
+        WebUser user = userServiceFeign.getUserById(note.getUid()).getData();
         NoteVO noteVo = BeanUtil.copyProperties(note, NoteVO.class);
         noteVo.setUsername(user.getUsername())
                 .setAvatar(user.getAvatar())
                 .setTime(note.getUpdateTime().getTime());
 
-        boolean follow = followService.isFollow(user.getId());
+        boolean follow = interactionServiceFeign.isFollow(user.getId()).getData();
         noteVo.setIsFollow(follow);
 
         Long currentUid = UserHolder.getUserId();
         List<WebLikeOrFavorite> likeOrCollectionList =
-                likeOrCollectMapper.selectList(new QueryWrapper<WebLikeOrFavorite>()
-                        .eq("like_or_favorite_id", noteId)
-                        .eq("uid", currentUid));
+                interactionServiceFeign.getLikeOrFavoriteByNidAndUid(noteId, currentUid);
 
         Set<Integer> types = likeOrCollectionList.stream().map(WebLikeOrFavorite::getType).collect(Collectors.toSet());
         noteVo.setIsLike(types.contains(1));
@@ -116,9 +122,9 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
     public Long saveNoteByDTO(String noteData, MultipartFile[] files) {
         Long currentUid = UserHolder.getUserId();
         // 更新用户笔记数量
-        WebUser user = userMapper.selectById(currentUid);
+        WebUser user = userServiceFeign.getUserById(currentUid).getData();
         user.setNoteCount(user.getNoteCount() + 1);
-        userMapper.updateById(user);
+        userServiceFeign.updateUserById(user);
 
         // 保存笔记
         NoteDTO noteDTO = JSON.parseObject(noteData, NoteDTO.class);
@@ -131,7 +137,7 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
         // 批量上传图片
         List<String> dataList = null;
         try {
-            dataList = ossService.saveBatch(files);
+            dataList = ossServiceFeign.uploadBatchFiles(files);
         } catch (Exception e) {
             throw new RedNoteException("图片上传失败");
         }
@@ -168,18 +174,15 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
             for (Object o : array) {
                 pathArr.add((String) o);
             }
-            ossService.batchDelete(pathArr);
+            ossServiceFeign.deleteBatchFiles(pathArr);
             // TODO 可以使用多线程优化，
             // 删除点赞图片，评论，标签关系，收藏关系
-            likeOrCollectMapper.delete(new QueryWrapper<WebLikeOrFavorite>()
-                    .eq("like_or_favorite_id", noteId));
-            List<WebComment> commentList =
-                    commentMapper.selectList(new QueryWrapper<WebComment>().eq("nid", noteId));
+            interactionServiceFeign.deleteLikeOrFavoriteByObjId(noteId);
+            List<WebComment> commentList = interactionServiceFeign.getCommentByNid(noteId);
             List<Long> cids = commentList.stream().map(WebComment::getId).collect(Collectors.toList());
             if (CollUtil.isNotEmpty(cids)) {
-                likeOrCollectMapper.delete(new QueryWrapper<WebLikeOrFavorite>()
-                        .in("like_or_favorite_id", cids));
-                commentMapper.deleteByIds(cids);
+                interactionServiceFeign.deleteLikeOrFavoriteByObjIds(cids);
+                interactionServiceFeign.deleteCommentByIds(cids);
             }
             tagNoteRelationMapper.delete(new QueryWrapper<WebTagNoteRelation>().eq("nid", noteId));
             userNoteRelationMapper.delete(new QueryWrapper<WebUserNoteRelation>().eq("nid", noteId));
@@ -207,7 +210,7 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
         List<String> newFileUrls = null;
         if (files != null && files.length > 0) {
             try {
-                newFileUrls = ossService.saveBatch(files);
+                newFileUrls = ossServiceFeign.uploadBatchFiles(files);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -237,7 +240,7 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
             JSONArray objects = JSONUtil.parseArray(originalNote.getUrls());
             List<String> oldFileUrls = objects.toList(String.class);
             if (!oldFileUrls.isEmpty()) {
-                ossService.batchDelete(oldFileUrls);
+                ossServiceFeign.deleteBatchFiles(oldFileUrls);
             }
         }
 
@@ -339,16 +342,15 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
      * 将笔记推送至用户的收件箱
      */
     private void pushToFollowers(Long uid, Long nid) {
-        List<Long> followerIdList =
-                followMapper.selectList(new QueryWrapper<WebFollow>().eq("fid", uid)).stream()
-                        .map(WebFollow::getUid)
-                        .toList();
+        List<Long> followerIdList = interactionServiceFeign.getFollowByFid(uid).stream()
+                .map(WebFollow::getUid)
+                .toList();
         for (Long followerId : followerIdList) {
             String key = RedisConstants.TREND_KEY + followerId;
             stringRedisTemplate.opsForZSet().add(key, nid.toString(), System.currentTimeMillis());
 
             // 更新未查看动态数量
-            chatService.increaseUncheckedMessageCount(UncheckedMessageEnum.TREND, followerId, 1L);
+            interactionServiceFeign.increaseUncheckedMessageCount(UncheckedMessageEnum.TREND, followerId, 1L);
             // Websocket 消息推送
             webSocketServer.sendMessage(new WSMessageDTO()
                     .setAcceptUid(followerId)

@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.rednote.common.domain.dto.Result;
 import org.rednote.interaction.api.dto.ScrollResult;
+import org.rednote.interaction.api.entity.WebFollow;
 import org.rednote.interaction.api.vo.FollowVO;
 import org.rednote.interaction.api.vo.TrendVO;
 import org.rednote.interaction.service.IWebFollowService;
@@ -15,6 +16,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @Tag(name = "关注管理", description = "关注管理相关接口")
 @RequestMapping("/web/follow")
@@ -43,7 +46,7 @@ public class WebFollowController {
 
     @Operation(summary = "当前用户是否关注", description = "当前用户是否关注")
     @GetMapping("isFollow")
-    public Result<?> isFollow(@Parameter(description = "关注用户 ID") Long followId) {
+    public Result<Boolean> isFollow(@Parameter(description = "关注用户 ID") Long followId) {
         boolean flag = followService.isFollow(followId);
         return Result.ok(flag);
     }
@@ -54,5 +57,15 @@ public class WebFollowController {
                                    @Parameter(description = "每页大小") @PathVariable long pageSize) {
         Page<FollowVO> pageInfo = followService.getFollowInfo(currentPage, pageSize);
         return Result.ok(pageInfo);
+    }
+
+    /**
+     * 以下用于远程调用
+     */
+
+    @Operation(hidden = true)
+    @GetMapping("getFollowByFid")
+    public List<WebFollow> getFollowByFid(Long fid) {
+        return followService.lambdaQuery().eq(WebFollow::getFid, fid).list();
     }
 }

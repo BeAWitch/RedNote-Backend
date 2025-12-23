@@ -40,4 +40,16 @@ public class WebOssController {
     List<String> uploadBatchFiles(MultipartFile[] files) {
         return ossService.saveBatch(files);
     }
+
+    @Operation(hidden = true)
+    @PostMapping("deleteFile")
+    void deleteFile(String path) {
+        ossService.delete(path);
+    }
+
+    @Operation(hidden = true)
+    @PostMapping("deleteBatchFiles")
+    void deleteBatchFiles(List<String> paths) {
+        ossService.batchDelete(paths);
+    }
 }

@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.rednote.common.domain.dto.Result;
 import org.rednote.interaction.api.dto.CommentDTO;
+import org.rednote.interaction.api.entity.WebComment;
 import org.rednote.interaction.api.vo.CommentVO;
 import org.rednote.interaction.service.IWebCommentService;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,6 +17,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 /**
  * 评论
@@ -68,5 +71,23 @@ public class WebCommentController {
     public Result<?> deleteCommentById(@Parameter(description = "评论 ID") Long commentId) {
         commentService.deleteCommentById(commentId);
         return Result.ok();
+    }
+
+    /**
+     * 以下用于远程调用
+     */
+
+    @Operation(hidden = true)
+    @PostMapping("deleteCommentByIds")
+    public boolean deleteCommentByIds(List<Long> commentIds) {
+        return commentService.removeBatchByIds(commentIds);
+    }
+
+    @Operation(hidden = true)
+    @GetMapping("getCommentByNid")
+    public List<WebComment> getCommentByNid(Long nid) {
+        return commentService.lambdaQuery()
+                .eq(WebComment::getNid, nid)
+                .list();
     }
 }

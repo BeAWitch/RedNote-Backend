@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -77,5 +78,18 @@ public class WebChatController {
     @RequestMapping("closeChat/{sendUid}")
     public boolean closeChat(@Parameter(description = "发送方用户 ID") @PathVariable("sendUid") Long sendUid) {
         return chatService.closeChat(sendUid);
+    }
+
+    /**
+     * 以下用于远程调用
+     */
+
+    @Operation(hidden = true)
+    @PostMapping("increaseUncheckedMessageCount")
+    public void increaseUncheckedMessageCount(
+            @RequestParam("type") UncheckedMessageEnum type,
+            @RequestParam("uid") Long uid,
+            @RequestParam("count") long count) {
+        chatService.increaseUncheckedMessageCount(type, uid, count);
     }
 }
