@@ -1,0 +1,46 @@
+server:
+  port: 8083
+  servlet:
+    context-path: /
+spring:
+  application:
+    name: interaction-service
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/rednote?useSSL=false&serverTimezone=UTC
+    username: root
+    password: root
+  jackson:
+    default-property-inclusion: non_null # JSON?????????
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 20MB
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 10s
+      lettuce:
+        pool:
+          min-idle: 0
+          max-idle: 8
+          max-active: 8
+          max-wait: -1ms
+
+mybatis-plus:
+  type-aliases-package: org.rednote.interaction.api.entity
+
+logging:
+  level:
+    org.rednote: debug
+
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    disable-swagger-default-url: true
+    display-request-duration: true
+    packages-to-scan: org.rednote.interaction.controller

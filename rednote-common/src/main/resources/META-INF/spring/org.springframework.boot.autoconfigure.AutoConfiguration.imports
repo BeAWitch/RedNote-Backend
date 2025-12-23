@@ -1,0 +1,6 @@
+org.rednote.common.config.RedisConfig
+org.rednote.common.config.MvcConfig
+org.rednote.common.config.MybatisConfig
+org.rednote.common.config.SwaggerConfig
+org.rednote.common.config.AspectAutoConfiguration
+org.rednote.common.config.WebExceptionAdvice
