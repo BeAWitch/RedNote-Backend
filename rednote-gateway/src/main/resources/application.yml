@@ -7,7 +7,6 @@ rednote:
       - /web/search/note/**
       - /web/search/record/**
       - /web/category/getCategoryTreeData/**
-      - /uploads/**
       - /swagger-ui.html
       - /swagger-ui/**
       - /v3/api-docs/**
@@ -15,10 +14,23 @@ spring:
   application:
     name: gateway
   cloud:
+    nacos:
+      server-addr: 192.168.56.2:8848 # nacos
     gateway:
       routes:
         - id: note
-          uri: http://localhost:8082
+          uri: lb://note-service
           predicates:
-            - Path=/web/note/**
-
+            - Path=/web/note/**, /web/category/**, /web/tag/**, /web/album/**
+        - id: user
+          uri: lb://user-service
+          predicates:
+            - Path=/web/auth/**, /web/user/**
+        - id: interaction
+          uri: lb://interaction-service
+          predicates:
+            - Path=/web/chat/**, /web/comment/**, /web/follow/**, /web/likeOrFavorite/**
+        - id: oss
+          uri: lb://oss-service
+          predicates:
+            - Path=/web/oss/**
