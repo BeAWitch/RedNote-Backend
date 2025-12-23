@@ -1,12 +1,12 @@
 server:
-  port: 8082
+  port: 8084
   servlet:
     context-path: /
 spring:
   application:
-    name: rednote-note
+    name: note-service
   datasource:
-    driver-class-name: com.mysql.jdbc.Driver
+    driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/rednote?useSSL=false&serverTimezone=UTC
     username: root
     password: root
@@ -29,7 +29,7 @@ spring:
           max-wait: -1ms
 
 mybatis-plus:
-  type-aliases-package: org.rednote.domain.entity
+  type-aliases-package: org.rednote.note.api.entity
 
 logging:
   level:
@@ -43,4 +43,4 @@ springdoc:
     path: /swagger-ui.html
     disable-swagger-default-url: true
     display-request-duration: true
-    packages-to-scan: org.rednote.controller
+    packages-to-scan: org.rednote.note.controller

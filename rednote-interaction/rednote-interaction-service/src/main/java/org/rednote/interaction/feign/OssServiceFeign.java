@@ -7,9 +7,9 @@ import org.springframework.web.multipart.MultipartFile;
 @FeignClient(name = "oss-service")
 public interface OssServiceFeign {
 
-    @PostMapping("/oss/uploadFile")
+    @PostMapping("/web/oss/uploadFile")
     String uploadFile(MultipartFile file);
 
-    @PostMapping("/oss/uploadFile")
-    String uploadFile(String base64String);
+    @PostMapping("/web/oss/uploadBase64")
+    String uploadBase64(String base64String);
 }

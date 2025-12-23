@@ -343,7 +343,7 @@ public class WebChatServiceImpl extends ServiceImpl<WebChatMessageMapper, WebCha
                 case TEXT: // 文字信息不需要处理
                     break;
                 case IMAGE: // 处理图片消息：保存并获取路径
-                    String path = ossServiceFeign.uploadFile(content.getContent());
+                    String path = ossServiceFeign.uploadBase64(content.getContent());
                     content.setContent(path);
                     break;
                 default: // TODO 语音、视频消息

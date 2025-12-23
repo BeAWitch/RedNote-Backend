@@ -55,12 +55,14 @@ public class WebUserController {
      * 下方用于远程调用
      */
 
-    @PostMapping("/web/user/updateUser")
+    @Operation(hidden = true)
+    @PostMapping("updateUser")
     public boolean updateUser(WebUser user) {
         return userService.updateById(user);
     }
 
-    @GetMapping("/web/user/getUserByIds")
+    @Operation(hidden = true)
+    @GetMapping("getUserByIds")
     List<WebUser> getUserByIds(List<Long> ids) {
         return userService.listByIds(ids);
     }

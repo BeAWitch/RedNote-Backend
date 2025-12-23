@@ -26,6 +26,7 @@
         <module>rednote-interaction/rednote-interaction-service</module>
         <module>rednote-user</module>
         <module>rednote-note</module>
+        <module>rednote-oss</module>
     </modules>
 
     <!-- =================== -->
