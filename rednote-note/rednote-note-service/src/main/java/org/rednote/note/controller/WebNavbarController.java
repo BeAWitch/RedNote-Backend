@@ -1,10 +1,12 @@
 package org.rednote.note.controller;
 
 import cn.hutool.core.lang.tree.Tree;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.rednote.common.domain.dto.Result;
+import org.rednote.note.api.entity.WebNavbar;
 import org.rednote.note.service.IWebNavbarService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,5 +27,21 @@ public class WebNavbarController {
     public Result<?> getCategoryTreeData() {
         List<Tree<Long>> navbarList = navbarService.getNavbarTreeData();
         return Result.ok(navbarList);
+    }
+
+    /**
+     * 以下用于远程调用
+     */
+
+    @Operation(hidden = true)
+    @GetMapping("selectCategoryList")
+    public List<WebNavbar> selectCategoryList(LambdaQueryWrapper<WebNavbar> queryWrapper) {
+        return navbarService.list(queryWrapper);
+    }
+
+    @Operation(hidden = true)
+    @GetMapping("getCategoryById")
+    public WebNavbar getCategoryById(Long id) {
+        return navbarService.getById(id);
     }
 }

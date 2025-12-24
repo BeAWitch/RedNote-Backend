@@ -41,13 +41,13 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
         }
         // 获取请求头中的 token
         String token = null;
-        List<String> headers = request.getHeaders().get("accessToken");
+        List<String> headers = request.getHeaders().get("accesstoken");
         if (!CollUtil.isEmpty(headers)) {
             token = headers.get(0);
         }
         // 基于 token 获取 redis 中的用户
         String key = RedisConstants.LOGIN_USER_KEY + token;
-        String userId = (String) redisUtil.get(key);
+        String userId = String.valueOf(redisUtil.get(key));
         // 判断用户是否存在
         if (StrUtil.isEmpty(userId)) {
             ServerHttpResponse response = exchange.getResponse();

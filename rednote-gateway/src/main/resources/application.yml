@@ -13,10 +13,31 @@ rednote:
 spring:
   application:
     name: gateway
+  main:
+    web-application-type: reactive
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 10s
+      lettuce:
+        pool:
+          min-idle: 0
+          max-idle: 8
+          max-active: 8
+          max-wait: -1ms
   cloud:
     nacos:
       server-addr: 192.168.56.2:8848 # nacos
     gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowed-origin-patterns: "*"
+            allowed-methods: "*"
+            allowed-headers: "*"
+            allow-credentials: true
+            max-age: 3600
       routes:
         - id: note
           uri: lb://note-service
@@ -29,8 +50,12 @@ spring:
         - id: interaction
           uri: lb://interaction-service
           predicates:
-            - Path=/web/chat/**, /web/comment/**, /web/follow/**, /web/likeOrFavorite/**
+            - Path=/web/chat/**, /web/comment/**, /web/follow/**, /web/likeOrFavorite/**, /web/ws/**
         - id: oss
           uri: lb://oss-service
           predicates:
             - Path=/web/oss/**
+        - id: search
+          uri: lb://search-service
+          predicates:
+            - Path=/web/search/**

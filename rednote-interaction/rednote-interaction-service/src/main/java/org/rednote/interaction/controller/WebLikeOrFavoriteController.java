@@ -39,7 +39,7 @@ public class WebLikeOrFavoriteController {
 
     @Operation(summary = "是否点赞或收藏", description = "是否点赞或收藏")
     @PostMapping("isLikeOrFavorite")
-    public Result<?> isLikeOrFavorite(
+    public Result<Boolean> isLikeOrFavorite(
             @Parameter(description = "点赞收藏实体") @RequestBody LikeOrFavoriteDTO likeOrFavoriteDTO) {
         boolean flag = likeOrFavoriteService.isLikeOrFavorite(likeOrFavoriteDTO);
         return Result.ok(flag);

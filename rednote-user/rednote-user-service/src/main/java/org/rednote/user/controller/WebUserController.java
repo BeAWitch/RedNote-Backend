@@ -1,5 +1,6 @@
 package org.rednote.user.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -63,7 +64,15 @@ public class WebUserController {
 
     @Operation(hidden = true)
     @GetMapping("getUserByIds")
-    List<WebUser> getUserByIds(List<Long> ids) {
+    public List<WebUser> getUserByIds(List<Long> ids) {
         return userService.listByIds(ids);
+    }
+
+    @Operation(hidden = true)
+    @GetMapping("selectUserPage")
+    public Page<WebUser> selectUserPage(
+            @RequestParam("page") Page<WebUser> page,
+            @RequestParam("queryWrapper") LambdaQueryWrapper<WebUser> queryWrapper) {
+        return userService.page(page, queryWrapper);
     }
 }

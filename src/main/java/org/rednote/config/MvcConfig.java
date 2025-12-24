@@ -25,6 +25,7 @@ public class MvcConfig implements WebMvcConfigurer {
                         "/web/category/getCategoryTreeData/**",
                         "/uploads/**",       // 本地文件访问路径
                         "/swagger-ui.html",
+                        "/web/ws/**",
                         "/swagger-ui/**",
                         "/v3/api-docs/**"
                 ).order(1);

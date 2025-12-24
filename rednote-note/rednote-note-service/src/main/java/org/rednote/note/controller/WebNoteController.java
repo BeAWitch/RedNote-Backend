@@ -1,5 +1,7 @@
 package org.rednote.note.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -92,5 +94,13 @@ public class WebNoteController {
     @PostMapping("updateNote")
     public boolean updateNote(@RequestBody WebNote note) {
         return noteService.updateById(note);
+    }
+
+    @Operation(hidden = true)
+    @GetMapping("selectNotePage")
+    public Page<WebNote> selectNotePage(
+            @RequestParam("page") Page<WebNote> page,
+            @RequestParam("queryWrapper") LambdaQueryWrapper<WebNote> queryWrapper) {
+        return noteService.page(page, queryWrapper);
     }
 }

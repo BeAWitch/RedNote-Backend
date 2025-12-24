@@ -3,7 +3,10 @@ package org.rednote.note.service;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.rednote.note.api.entity.WebTag;
+import org.rednote.note.api.entity.WebTagNoteRelation;
 import org.rednote.note.api.vo.TagVO;
+
+import java.util.List;
 
 /**
  * 标签
@@ -26,4 +29,6 @@ public interface IWebTagService extends IService<WebTag> {
      * @param keyword     关键词
      */
     Page<TagVO> getTagByKeyword(long currentPage, long pageSize, String keyword);
+
+    List<WebTagNoteRelation> getTagNoteRelationByNid(Long nid);
 }

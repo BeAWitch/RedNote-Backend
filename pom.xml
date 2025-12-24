@@ -25,6 +25,7 @@
         <module>rednote-user</module>
         <module>rednote-note</module>
         <module>rednote-oss</module>
+        <module>rednote-search</module>
     </modules>
 
     <!-- =================== -->
