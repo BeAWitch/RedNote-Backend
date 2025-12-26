@@ -1,6 +1,5 @@
 package org.rednote.search.feign;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.rednote.common.domain.dto.Result;
 import org.rednote.user.api.entity.WebUser;
@@ -12,10 +11,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 public interface UserServiceFeign {
 
     @GetMapping("/web/user/getUserById")
-    Result<WebUser> getUserById(Long id);
+    Result<WebUser> getUserById(@RequestParam("userId") Long userId);
 
     @GetMapping("/web/user/selectUserPage")
     Page<WebUser> selectUserPage(
-            @RequestParam("page") Page<WebUser> page,
-            @RequestParam("queryWrapper") LambdaQueryWrapper<WebUser> queryWrapper);
+            @RequestParam("currentPage") long currentPage,
+            @RequestParam("pageSize") long pageSize
+    );
 }

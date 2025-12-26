@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -85,7 +86,7 @@ public class WebCommentController {
 
     @Operation(hidden = true)
     @GetMapping("getCommentByNid")
-    public List<WebComment> getCommentByNid(Long nid) {
+    public List<WebComment> getCommentByNid(@RequestParam("nid") Long nid) {
         return commentService.lambdaQuery()
                 .eq(WebComment::getNid, nid)
                 .list();

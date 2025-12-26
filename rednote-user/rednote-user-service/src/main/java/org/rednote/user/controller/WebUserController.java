@@ -1,6 +1,5 @@
 package org.rednote.user.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -29,7 +28,7 @@ public class WebUserController {
 
     @Operation(summary = "获取用户信息", description = "获取用户信息")
     @GetMapping("getUserById")
-    public Result<?> getUserById(@Parameter(description = "用户 ID") String userId) {
+    public Result<WebUser> getUserById(@Parameter(description = "用户 ID") @RequestParam("userId") Long userId) {
         WebUser user = userService.getById(userId);
         return Result.ok(user);
     }
@@ -64,15 +63,15 @@ public class WebUserController {
 
     @Operation(hidden = true)
     @GetMapping("getUserByIds")
-    public List<WebUser> getUserByIds(List<Long> ids) {
+    public List<WebUser> getUserByIds(@RequestParam("ids") List<Long> ids) {
         return userService.listByIds(ids);
     }
 
     @Operation(hidden = true)
     @GetMapping("selectUserPage")
     public Page<WebUser> selectUserPage(
-            @RequestParam("page") Page<WebUser> page,
-            @RequestParam("queryWrapper") LambdaQueryWrapper<WebUser> queryWrapper) {
-        return userService.page(page, queryWrapper);
+            @RequestParam("currentPage") long currentPage,
+            @RequestParam("pageSize") long pageSize) {
+        return userService.page(new Page<>(currentPage, pageSize));
     }
 }

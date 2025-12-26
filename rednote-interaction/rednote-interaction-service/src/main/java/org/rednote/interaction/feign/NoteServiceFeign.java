@@ -15,25 +15,25 @@ import java.util.List;
 @FeignClient(name = "note-service")
 public interface NoteServiceFeign {
     @GetMapping("/web/note/getById")
-    WebNote getNoteById(Long noteId);
+    WebNote getNoteById(@RequestParam("noteId") Long noteId);
 
     @GetMapping("/web/note/getByIds")
-    List<WebNote> getNoteByIds(List<Long> noteIds);
+    List<WebNote> getNoteByIds(@RequestParam("noteIds") List<Long> noteIds);
 
     @GetMapping("/web/note/getByIdsOrderedByTime")
-    List<WebNote> getByIdsOrderedByTime(List<Long> noteIds);
+    List<WebNote> getByIdsOrderedByTime(@RequestParam("noteIds") List<Long> noteIds);
 
     @PostMapping("/web/note/updateNote")
     boolean updateNote(@RequestBody WebNote note);
 
     @GetMapping("/web/note/getUserNoteRelationByUserId")
-    List<WebUserNoteRelation> getUserNoteRelationByUserId(Long userId);
+    List<WebUserNoteRelation> getUserNoteRelationByUserId(@RequestParam("userId") Long userId);
 
     @GetMapping("/web/album/getAlbumById")
-    WebAlbum getAlbumById(Long albumId);
+    WebAlbum getAlbumById(@RequestParam("albumId") Long albumId);
 
     @GetMapping("/web/album/getAlbumByIds")
-    List<WebAlbum> getAlbumByIds(List<Long> albumIds);
+    List<WebAlbum> getAlbumByIds(@RequestParam("albumIds") List<Long> albumIds);
 
     @GetMapping("/web/album/getAlbumByIdAndType")
     WebAlbum getAlbumByIdAndType(@RequestParam("albumId") Long albumId, @RequestParam("type") Integer type);
@@ -54,5 +54,5 @@ public interface NoteServiceFeign {
     boolean deleteAlbumNoteRelationByAidAndNid(@RequestParam("aid") Long aid, @RequestParam("nid") Long nid);
 
     @GetMapping("/web/album/getAlbumNoteRelationByNid")
-    List<WebAlbumNoteRelation> getAlbumNoteRelationByNid(Long nid);
+    List<WebAlbumNoteRelation> getAlbumNoteRelationByNid(@RequestParam("nid") Long nid);
 }

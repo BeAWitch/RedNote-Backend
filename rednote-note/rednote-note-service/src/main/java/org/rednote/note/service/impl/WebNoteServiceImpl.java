@@ -2,12 +2,14 @@ package org.rednote.note.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.rednote.common.constant.RedisConstants;
@@ -36,6 +38,7 @@ import org.rednote.note.mapper.WebTagMapper;
 import org.rednote.note.mapper.WebTagNoteRelationMapper;
 import org.rednote.note.mapper.WebUserNoteRelationMapper;
 import org.rednote.note.service.IWebNoteService;
+import org.rednote.search.api.dto.SearchNoteDTO;
 import org.rednote.user.api.entity.WebUser;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -290,6 +293,48 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
     @Override
     public List<WebNote> getByIdsOrderedByTime(List<Long> noteIds) {
         return lambdaQuery().in(WebNote::getId, noteIds).orderByDesc(WebNote::getCreateTime).list();
+    }
+
+    @Override
+    public Page<WebNote> selectNotePage(Page<WebNote> page,SearchNoteDTO searchNoteDTO) {
+        LambdaQueryWrapper<WebNote> queryWrapper = new LambdaQueryWrapper<>();
+
+        // 关键词搜索（多字段模糊查询）
+        if (StrUtil.isNotBlank(searchNoteDTO.getKeyword())) {
+            String keyword = searchNoteDTO.getKeyword();
+            queryWrapper.and(wrapper -> wrapper
+                    .like(WebNote::getTitle, keyword)
+                    .or().like(WebNote::getContent, keyword)
+            );
+        }
+
+        // 分类条件查询
+        if (ObjectUtil.isNotEmpty(searchNoteDTO.getCpid())) {
+            queryWrapper.eq(WebNote::getCpid, searchNoteDTO.getCpid());
+        }
+        if (ObjectUtil.isNotEmpty(searchNoteDTO.getCid())) {
+            queryWrapper.eq(WebNote::getCid, searchNoteDTO.getCid());
+        }
+
+        // 排序条件
+        if (searchNoteDTO.getType() == 1) {
+            queryWrapper.orderByDesc(WebNote::getLikeCount);
+        } else if (searchNoteDTO.getType() == 2) {
+            queryWrapper.orderByDesc(WebNote::getUpdateTime);
+        }
+
+        // 只查询审核通过的笔记
+        queryWrapper.eq(WebNote::getAuditStatus, 1);
+
+        // 查询
+        return this.page(page, queryWrapper);
+    }
+
+    @Override
+    public List<WebUserNoteRelation> getUserNoteRelationByUserId(Long userId) {
+        return userNoteRelationMapper.selectList(
+                new LambdaQueryWrapper<>(WebUserNoteRelation.class).eq(WebUserNoteRelation::getUid, userId)
+        );
     }
 
     /**

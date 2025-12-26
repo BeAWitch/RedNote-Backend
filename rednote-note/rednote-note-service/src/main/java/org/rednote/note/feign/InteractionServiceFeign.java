@@ -16,11 +16,13 @@ import java.util.List;
 public interface InteractionServiceFeign {
 
     @GetMapping("/web/follow/isFollow")
-    Result<Boolean> isFollow(Long followId);
+    Result<Boolean> isFollow(@RequestParam("followId") Long followId);
 
     @GetMapping("/web/likeOrFavorite/getLikeOrFavoriteByNidAndUid")
     List<WebLikeOrFavorite> getLikeOrFavoriteByNidAndUid(
-            @RequestParam("nid") Long nid, @RequestParam("uid") Long uid);
+            @RequestParam("nid") Long nid,
+            @RequestParam("uid") Long uid
+    );
 
     @PostMapping("/web/likeOrFavorite/deleteLikeOrFavoriteByObjId")
     boolean deleteLikeOrFavoriteByObjId(Long objId);
@@ -32,10 +34,10 @@ public interface InteractionServiceFeign {
     boolean deleteCommentByIds(List<Long> commentIds);
 
     @GetMapping("/web/comment/getCommentByNid")
-    List<WebComment> getCommentByNid(Long nid);
+    List<WebComment> getCommentByNid(@RequestParam("nid") Long nid);
 
     @GetMapping("/web/follow/getFollowByFid")
-    List<WebFollow> getFollowByFid(Long fid);
+    List<WebFollow> getFollowByFid(@RequestParam("fid") Long fid);
 
     @PostMapping("increaseUncheckedMessageCount")
     void increaseUncheckedMessageCount(

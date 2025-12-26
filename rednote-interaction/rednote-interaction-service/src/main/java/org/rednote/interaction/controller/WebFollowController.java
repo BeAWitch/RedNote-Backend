@@ -46,7 +46,7 @@ public class WebFollowController {
 
     @Operation(summary = "当前用户是否关注", description = "当前用户是否关注")
     @GetMapping("isFollow")
-    public Result<Boolean> isFollow(@Parameter(description = "关注用户 ID") Long followId) {
+    public Result<Boolean> isFollow(@Parameter(description = "关注用户 ID") @RequestParam("fowllowId") Long followId) {
         boolean flag = followService.isFollow(followId);
         return Result.ok(flag);
     }
@@ -65,7 +65,7 @@ public class WebFollowController {
 
     @Operation(hidden = true)
     @GetMapping("getFollowByFid")
-    public List<WebFollow> getFollowByFid(Long fid) {
+    public List<WebFollow> getFollowByFid(@RequestParam("fid") Long fid) {
         return followService.lambdaQuery().eq(WebFollow::getFid, fid).list();
     }
 }

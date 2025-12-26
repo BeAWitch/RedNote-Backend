@@ -36,6 +36,12 @@
             <version>1.0.0</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.rednote</groupId>
+            <artifactId>rednote-search-api</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+
         <!--openFeign-->
         <dependency>
             <groupId>org.springframework.cloud</groupId>

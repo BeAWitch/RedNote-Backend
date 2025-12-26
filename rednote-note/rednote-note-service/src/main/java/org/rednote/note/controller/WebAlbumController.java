@@ -30,12 +30,12 @@ public class WebAlbumController {
      */
 
     @GetMapping("getAlbumById")
-    WebAlbum getAlbumById(Long albumId) {
+    WebAlbum getAlbumById(@RequestParam("albumId") Long albumId) {
         return albumService.getById(albumId);
     }
 
     @GetMapping("getAlbumByIds")
-    List<WebAlbum> getAlbumByIds(List<Long> albumIds) {
+    List<WebAlbum> getAlbumByIds(@RequestParam("albumIds") List<Long> albumIds) {
         return albumService.listByIds(albumIds);
     }
 
@@ -76,7 +76,7 @@ public class WebAlbumController {
     }
 
     @GetMapping("getAlbumNoteRelationByNid")
-    List<WebAlbumNoteRelation> getAlbumNoteRelationByNid(Long nid) {
+    List<WebAlbumNoteRelation> getAlbumNoteRelationByNid(@RequestParam("nid") Long nid) {
         return albumNoteRelationService.lambdaQuery()
                 .eq(WebAlbumNoteRelation::getNid, nid)
                 .list();

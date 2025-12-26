@@ -8,6 +8,7 @@ rednote:
       - /web/search/record/**
       - /web/category/getCategoryTreeData/**
       - /swagger-ui.html
+      - /web/ws/**
       - /swagger-ui/**
       - /v3/api-docs/**
 spring:

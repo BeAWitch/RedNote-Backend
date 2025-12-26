@@ -1,9 +1,11 @@
 package org.rednote.note.service;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.rednote.note.api.entity.WebNote;
 import org.rednote.note.api.entity.WebUserNoteRelation;
 import org.rednote.note.api.vo.NoteVO;
+import org.rednote.search.api.dto.SearchNoteDTO;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -63,4 +65,8 @@ public interface IWebNoteService extends IService<WebNote> {
      * @param noteIds 笔记 ID 集合
      */
     List<WebNote> getByIdsOrderedByTime(List<Long> noteIds);
+
+    Page<WebNote> selectNotePage(Page<WebNote> page ,SearchNoteDTO searchNoteDTO);
+
+    List<WebUserNoteRelation> getUserNoteRelationByUserId(Long userId);
 }

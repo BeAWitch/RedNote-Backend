@@ -1,6 +1,5 @@
 package org.rednote.note.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -8,8 +7,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.rednote.common.domain.dto.Result;
 import org.rednote.note.api.entity.WebNote;
+import org.rednote.note.api.entity.WebUserNoteRelation;
 import org.rednote.note.api.vo.NoteVO;
 import org.rednote.note.service.IWebNoteService;
+import org.rednote.search.api.dto.SearchNoteDTO;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -74,19 +75,19 @@ public class WebNoteController {
 
     @Operation(hidden = true)
     @GetMapping("getById")
-    public WebNote getById(Long noteId) {
+    public WebNote getById(@RequestParam("noteId") Long noteId) {
         return noteService.getById(noteId);
     }
 
     @Operation(hidden = true)
     @GetMapping("getByIds")
-    public List<WebNote> getByIds(List<Long> noteIds) {
+    public List<WebNote> getByIds(@RequestParam("noteIds") List<Long> noteIds) {
         return noteService.listByIds(noteIds);
     }
 
     @Operation(hidden = true)
     @GetMapping("getByIdsOrderedByTime")
-    public List<WebNote> getByIdsOrderedByTime(List<Long> noteIds) {
+    public List<WebNote> getByIdsOrderedByTime(@RequestParam("noteIds") List<Long> noteIds) {
         return noteService.getByIdsOrderedByTime(noteIds);
     }
 
@@ -97,10 +98,17 @@ public class WebNoteController {
     }
 
     @Operation(hidden = true)
-    @GetMapping("selectNotePage")
+    @PostMapping("selectNotePage")
     public Page<WebNote> selectNotePage(
-            @RequestParam("page") Page<WebNote> page,
-            @RequestParam("queryWrapper") LambdaQueryWrapper<WebNote> queryWrapper) {
-        return noteService.page(page, queryWrapper);
+            @RequestParam("currentPage") Long currentPage,
+            @RequestParam("pageSize") Long pageSize,
+            @RequestBody SearchNoteDTO searchNoteDTO) {
+        return noteService.selectNotePage(new Page<>(currentPage, pageSize) ,searchNoteDTO);
+    }
+
+    @Operation(hidden = true)
+    @GetMapping("/web/note/getUserNoteRelationByUserId")
+    List<WebUserNoteRelation> getUserNoteRelationByUserId(@RequestParam("userId") Long userId) {
+        return noteService.getUserNoteRelationByUserId(userId);
     }
 }

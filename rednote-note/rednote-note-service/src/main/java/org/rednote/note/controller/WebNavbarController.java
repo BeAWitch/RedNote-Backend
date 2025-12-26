@@ -10,6 +10,7 @@ import org.rednote.note.api.entity.WebNavbar;
 import org.rednote.note.service.IWebNavbarService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -35,13 +36,13 @@ public class WebNavbarController {
 
     @Operation(hidden = true)
     @GetMapping("selectCategoryList")
-    public List<WebNavbar> selectCategoryList(LambdaQueryWrapper<WebNavbar> queryWrapper) {
-        return navbarService.list(queryWrapper);
+    public List<WebNavbar> selectCategoryListByKeyword(@RequestParam("keyword") String keyword) {
+        return navbarService.list(new LambdaQueryWrapper<>(WebNavbar.class).like(WebNavbar::getTitle, keyword));
     }
 
     @Operation(hidden = true)
     @GetMapping("getCategoryById")
-    public WebNavbar getCategoryById(Long id) {
+    public WebNavbar getCategoryById(@RequestParam("id") Long id) {
         return navbarService.getById(id);
     }
 }

@@ -3,7 +3,6 @@ package org.rednote.search.service.impl;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson2.JSON;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
@@ -42,44 +41,13 @@ public class WebSearchNoteServiceImpl implements IWebSearchNoteService {
     /**
      * 搜索对应的笔记
      *
-     * @param currentPage 当前页
-     * @param pageSize    分页数
-     * @param searchNoteDTO   笔记查询条件
+     * @param currentPage   当前页
+     * @param pageSize      分页数
+     * @param searchNoteDTO 笔记查询条件
      */
     @Override
     public Page<NoteSearchVO> getNoteByDTO(long currentPage, long pageSize, SearchNoteDTO searchNoteDTO) {
-        Page<WebNote> notePage = new Page<>(currentPage, pageSize);
-        LambdaQueryWrapper<WebNote> queryWrapper = new LambdaQueryWrapper<>();
-
-        // 关键词搜索（多字段模糊查询）
-        if (StrUtil.isNotBlank(searchNoteDTO.getKeyword())) {
-            String keyword = searchNoteDTO.getKeyword();
-            queryWrapper.and(wrapper -> wrapper
-                    .like(WebNote::getTitle, keyword)
-                    .or().like(WebNote::getContent, keyword)
-            );
-        }
-
-        // 分类条件查询
-        if (ObjectUtil.isNotEmpty(searchNoteDTO.getCpid())) {
-            queryWrapper.eq(WebNote::getCpid, searchNoteDTO.getCpid());
-        }
-        if (ObjectUtil.isNotEmpty(searchNoteDTO.getCid())) {
-            queryWrapper.eq(WebNote::getCid, searchNoteDTO.getCid());
-        }
-
-        // 排序条件
-        if (searchNoteDTO.getType() == 1) {
-            queryWrapper.orderByDesc(WebNote::getLikeCount);
-        } else if (searchNoteDTO.getType() == 2) {
-            queryWrapper.orderByDesc(WebNote::getUpdateTime);
-        }
-
-        // 只查询审核通过的笔记
-        queryWrapper.eq(WebNote::getAuditStatus, 1);
-
-        // 执行查询
-        Page<WebNote> resultPage = noteServiceFeign.selectNotePage(notePage, queryWrapper);
+        Page<WebNote> resultPage = noteServiceFeign.selectNotePage(currentPage, pageSize, searchNoteDTO);
 
         // 转换为 VO 并填充额外信息
         IPage<NoteSearchVO> noteSearchVOIPage = resultPage.convert(this::convertToNoteSearchVO);
@@ -97,9 +65,7 @@ public class WebSearchNoteServiceImpl implements IWebSearchNoteService {
      */
     @Override
     public List<WebNavbar> getCategoryAgg(SearchNoteDTO SearchNoteDTO) {
-        return noteServiceFeign.selectCategoryList(
-                new LambdaQueryWrapper<>(WebNavbar.class).like(WebNavbar::getTitle, SearchNoteDTO.getKeyword())
-        );
+        return noteServiceFeign.selectCategoryListByKeyword(SearchNoteDTO.getKeyword());
     }
 
     /**
@@ -111,17 +77,12 @@ public class WebSearchNoteServiceImpl implements IWebSearchNoteService {
     @Override
     public Page<NoteSearchVO> getRecommendNote(long currentPage, long pageSize) {
         // 构建查询条件
-        Page<WebNote> notePage = new Page<>(currentPage, pageSize);
-        LambdaQueryWrapper<WebNote> queryWrapper = new LambdaQueryWrapper<>();
-
+        SearchNoteDTO searchNoteDTO = new SearchNoteDTO();
         // 排序条件
-        queryWrapper.orderByDesc(WebNote::getLikeCount);
-
-        // 只查询审核通过的笔记
-        queryWrapper.eq(WebNote::getAuditStatus, 1);
+        searchNoteDTO.setType(1);
 
         // 执行查询
-        Page<WebNote> resultPage = noteServiceFeign.selectNotePage(notePage, queryWrapper);
+        Page<WebNote> resultPage = noteServiceFeign.selectNotePage(currentPage, pageSize, searchNoteDTO);
 
         // 转换为 VO 并填充额外信息
         IPage<NoteSearchVO> noteSearchVOIPage = resultPage.convert(this::convertToNoteSearchVO);
@@ -138,7 +99,7 @@ public class WebSearchNoteServiceImpl implements IWebSearchNoteService {
      */
     @Override
     public Page<WebUser> getRecommendUser(long currentPage, long pageSize) {
-        return userServiceFeign.selectUserPage(new Page<>(currentPage, pageSize), new LambdaQueryWrapper<>());
+        return userServiceFeign.selectUserPage(currentPage, pageSize);
     }
 
     /**
@@ -149,24 +110,7 @@ public class WebSearchNoteServiceImpl implements IWebSearchNoteService {
      */
     @Override
     public Page<NoteSearchVO> getHotNote(long currentPage, long pageSize) {
-        // 构建查询条件
-        Page<WebNote> notePage = new Page<>(currentPage, pageSize);
-        LambdaQueryWrapper<WebNote> queryWrapper = new LambdaQueryWrapper<>();
-
-        // 排序条件
-        queryWrapper.orderByDesc(WebNote::getLikeCount);
-
-        // 只查询审核通过的笔记
-        queryWrapper.eq(WebNote::getAuditStatus, 1);
-
-        // 执行查询
-        Page<WebNote> resultPage = noteServiceFeign.selectNotePage(notePage, queryWrapper);
-
-        // 转换为 VO 并填充额外信息
-        IPage<NoteSearchVO> noteSearchVOIPage = resultPage.convert(this::convertToNoteSearchVO);
-        return new Page<NoteSearchVO>()
-                .setRecords(noteSearchVOIPage.getRecords())
-                .setTotal(noteSearchVOIPage.getTotal());
+        return this.getRecommendNote(currentPage, pageSize);
     }
 
     /**

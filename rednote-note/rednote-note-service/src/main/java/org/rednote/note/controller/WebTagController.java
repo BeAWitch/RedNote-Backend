@@ -57,13 +57,13 @@ public class WebTagController {
 
     @Operation(hidden = true)
     @GetMapping("getTagByIds")
-    public List<WebTag> getTagByIds(List<Long> tagIds) {
+    public List<WebTag> getTagByIds(@RequestParam("tagIds") List<Long> tagIds) {
         return tagService.listByIds(tagIds);
     }
 
     @Operation(hidden = true)
     @GetMapping("getTagNoteRelationByNid")
-    public List<WebTagNoteRelation> getTagNoteRelationByNid(Long nid) {
+    public List<WebTagNoteRelation> getTagNoteRelationByNid(@RequestParam("nid") Long nid) {
         return tagService.getTagNoteRelationByNid(nid);
     }
 }
