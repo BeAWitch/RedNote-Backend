@@ -63,6 +63,10 @@ public class WebLikeOrFavoriteServiceImpl extends ServiceImpl<WebLikeOrFavoriteM
     @Override
     public void likeOrFavoriteByDTO(LikeOrFavoriteDTO likeOrFavoriteDTO) {
         Long currentUid = UserHolder.getUserId();
+        if (ObjectUtil.isEmpty(currentUid)) {
+            // 未登录
+            return;
+        }
 
         if (isLikeOrFavorite(likeOrFavoriteDTO)) {
             // 取消
@@ -114,6 +118,10 @@ public class WebLikeOrFavoriteServiceImpl extends ServiceImpl<WebLikeOrFavoriteM
     @Override
     public boolean isLikeOrFavorite(LikeOrFavoriteDTO likeOrFavoriteDTO) {
         Long currentUid = UserHolder.getUserId();
+        if (ObjectUtil.isEmpty(currentUid)) {
+            // 未登录
+            return false;
+        }
         String key = getRedisPrefix(likeOrFavoriteDTO) + likeOrFavoriteDTO.getLikeOrFavoriteId();
         Boolean isMember = stringRedisTemplate.opsForSet().isMember(key, currentUid.toString());
         return BooleanUtil.isTrue(isMember);
