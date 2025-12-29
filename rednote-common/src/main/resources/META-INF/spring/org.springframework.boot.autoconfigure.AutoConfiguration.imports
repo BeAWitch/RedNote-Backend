@@ -4,3 +4,4 @@ org.rednote.common.config.MybatisConfig
 org.rednote.common.config.SwaggerConfig
 org.rednote.common.config.AspectAutoConfiguration
 org.rednote.common.config.WebExceptionAdvice
+org.rednote.common.config.FeignAutoConfiguration

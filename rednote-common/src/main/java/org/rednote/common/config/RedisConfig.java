@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 
 @Configuration
@@ -21,14 +21,14 @@ public class RedisConfig {
         // 设置连接工厂
         template.setConnectionFactory(connectionFactory);
         // 创建 JSON 序列化工具
-        GenericJackson2JsonRedisSerializer jsonRedisSerializer =
-                new GenericJackson2JsonRedisSerializer();
+        Jackson2JsonRedisSerializer<Object> serializer =
+                new Jackson2JsonRedisSerializer<>(Object.class);
         // 设置 Key 的序列化
         template.setKeySerializer(RedisSerializer.string());
         template.setHashKeySerializer(RedisSerializer.string());
         // 设置 Value 的序列化
-        template.setValueSerializer(jsonRedisSerializer);
-        template.setHashValueSerializer(jsonRedisSerializer);
+        template.setValueSerializer(serializer);
+        template.setHashValueSerializer(serializer);
         // 返回
         return template;
     }

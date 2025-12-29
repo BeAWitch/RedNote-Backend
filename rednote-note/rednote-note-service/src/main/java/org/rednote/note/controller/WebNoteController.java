@@ -107,7 +107,7 @@ public class WebNoteController {
     }
 
     @Operation(hidden = true)
-    @GetMapping("/web/note/getUserNoteRelationByUserId")
+    @GetMapping("getUserNoteRelationByUserId")
     List<WebUserNoteRelation> getUserNoteRelationByUserId(@RequestParam("userId") Long userId) {
         return noteService.getUserNoteRelationByUserId(userId);
     }

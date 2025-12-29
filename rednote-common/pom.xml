@@ -63,6 +63,12 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-aop</artifactId>
         </dependency>
+        <!--openFeign-->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-openfeign</artifactId>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
     <build>
         <finalName>${project.artifactId}</finalName>

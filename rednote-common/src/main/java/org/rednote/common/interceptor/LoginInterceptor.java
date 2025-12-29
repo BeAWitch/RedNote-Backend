@@ -12,7 +12,7 @@ public class LoginInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         String userId = request.getHeader("userId");
         // 判断是否存在用户
-        if (StrUtil.isNotBlank(userId)) {
+        if (StrUtil.isNotEmpty(userId) && !StrUtil.equals("null", userId)) {
             UserHolder.setUserId(Long.valueOf(userId));
         }
         // 放行
