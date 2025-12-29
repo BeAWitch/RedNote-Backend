@@ -70,15 +70,44 @@ public class WebLikeOrFavoriteController {
 
     @Operation(hidden = true)
     @PostMapping("deleteLikeOrFavoriteByObjId")
-    public boolean deleteLikeOrFavoriteByObjId(Long objId) {
+    public Boolean deleteLikeOrFavoriteByObjId(@RequestParam("objId") Long objId) {
         return likeOrFavoriteService.remove(new LambdaQueryWrapper<>(WebLikeOrFavorite.class)
                 .eq(WebLikeOrFavorite::getLikeOrFavoriteId, objId));
     }
 
     @Operation(hidden = true)
     @PostMapping("deleteLikeOrFavoriteByObjIds")
-    public boolean deleteLikeOrFavoriteByObjIds(List<Long> objIds) {
+    public Boolean deleteLikeOrFavoriteByObjIds(@RequestBody List<Long> objIds) {
         return likeOrFavoriteService.remove(new LambdaQueryWrapper<>(WebLikeOrFavorite.class)
                 .in(WebLikeOrFavorite::getLikeOrFavoriteId, objIds));
+    }
+
+    @Operation(hidden = true)
+    @GetMapping("getLikeOrFavoriteByUidAndTypeOrderByTime")
+    Page<WebLikeOrFavorite> getLikeOrFavoriteByUidAndTypeOrderByTime(
+            @RequestParam("currentPage") Integer currentPage,
+            @RequestParam("pageSize") Integer pageSize,
+            @RequestParam("uid") Long uid,
+            @RequestParam("type") Integer type
+    ) {
+        return likeOrFavoriteService.page(
+                new Page<>(currentPage, pageSize),
+                new LambdaQueryWrapper<>(WebLikeOrFavorite.class)
+                        .eq(WebLikeOrFavorite::getUid, uid)
+                        .eq(WebLikeOrFavorite::getType, type)
+                        .orderByDesc(WebLikeOrFavorite::getCreateTime)
+        );
+    }
+
+    @Operation(hidden = true)
+    @GetMapping("getLikeOrFavoriteByUidAndType")
+    List<WebLikeOrFavorite> getLikeOrFavoriteByUidAndType(
+            @RequestParam("uid") Long uid,
+            @RequestParam("type") Integer type
+    ) {
+        return likeOrFavoriteService.lambdaQuery()
+                .eq(WebLikeOrFavorite::getUid, uid)
+                .eq(WebLikeOrFavorite::getType, type)
+                .list();
     }
 }

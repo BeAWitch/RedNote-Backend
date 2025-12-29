@@ -76,7 +76,7 @@ public class WebChatController {
 
     @Operation(summary = "关闭聊天", description = "关闭聊天")
     @RequestMapping("closeChat/{sendUid}")
-    public boolean closeChat(@Parameter(description = "发送方用户 ID") @PathVariable("sendUid") Long sendUid) {
+    public Boolean closeChat(@Parameter(description = "发送方用户 ID") @PathVariable("sendUid") Long sendUid) {
         return chatService.closeChat(sendUid);
     }
 

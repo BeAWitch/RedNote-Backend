@@ -29,10 +29,10 @@ public class WebFollowController {
 
     @Operation(summary = "获取关注用户的所有动态", description = "获取关注用户的所有动态")
     @GetMapping("getFollowTrend")
-    public Result<?> getFollowTrend(@Parameter(description = "上一次的查询的最小时间戳") long lastTime,
+    public Result<?> getFollowTrend(@Parameter(description = "上一次的查询的最小时间戳") Long lastTime,
                                     @Parameter(description = "上一次的查询中最小时间戳的个数")
-                                    @RequestParam(defaultValue = "0") int offset,
-                                    @Parameter(description = "查询的数量") int count) {
+                                    @RequestParam(defaultValue = "0") Integer offset,
+                                    @Parameter(description = "查询的数量") Integer count) {
         ScrollResult<TrendVO> trendVOScrollResult = followService.getFollowTrend(lastTime, offset, count);
         return Result.ok(trendVOScrollResult);
     }

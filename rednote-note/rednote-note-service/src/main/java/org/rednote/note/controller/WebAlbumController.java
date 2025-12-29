@@ -47,27 +47,27 @@ public class WebAlbumController {
     }
 
     @PostMapping("addAlbum")
-    boolean addAlbum(@RequestBody WebAlbum album) {
+    Boolean addAlbum(@RequestBody WebAlbum album) {
         return albumService.save(album);
     }
 
     @PostMapping("updateAlbum")
-    boolean updateAlbum(@RequestBody WebAlbum album) {
+    Boolean updateAlbum(@RequestBody WebAlbum album) {
         return albumService.saveOrUpdate(album);
     }
 
     @PostMapping("addAlbumNoteRelation")
-    boolean addAlbumNoteRelation(@RequestBody WebAlbumNoteRelation albumNoteRelation) {
+    Boolean addAlbumNoteRelation(@RequestBody WebAlbumNoteRelation albumNoteRelation) {
         return albumNoteRelationService.save(albumNoteRelation);
     }
 
     @PostMapping("updateAlbumNoteRelation")
-    boolean updateAlbumNoteRelation(@RequestBody WebAlbumNoteRelation albumNoteRelation) {
+    Boolean updateAlbumNoteRelation(@RequestBody WebAlbumNoteRelation albumNoteRelation) {
         return albumNoteRelationService.saveOrUpdate(albumNoteRelation);
     }
 
     @PostMapping("deleteAlbumNoteRelation")
-    boolean deleteAlbumNoteRelationByAidAndNid(@RequestParam("aid") Long aid, @RequestParam("nid") Long nid) {
+    Boolean deleteAlbumNoteRelationByAidAndNid(@RequestParam("aid") Long aid, @RequestParam("nid") Long nid) {
         return albumNoteRelationService.remove(
                 new LambdaQueryWrapper<>(WebAlbumNoteRelation.class)
                         .eq(WebAlbumNoteRelation::getId, aid)

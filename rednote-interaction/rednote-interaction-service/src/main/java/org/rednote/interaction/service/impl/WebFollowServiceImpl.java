@@ -2,6 +2,7 @@ package org.rednote.interaction.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -53,7 +54,7 @@ public class WebFollowServiceImpl extends ServiceImpl<WebFollowMapper, WebFollow
      * @param count    查询的数量
      */
     @Override
-    public ScrollResult<TrendVO> getFollowTrend(long lastTime, int offset, int count) {
+    public ScrollResult<TrendVO> getFollowTrend(Long lastTime, Integer offset, Integer count) {
         Long currentUid = UserHolder.getUserId();
 
         // 查询 Redis
@@ -174,24 +175,30 @@ public class WebFollowServiceImpl extends ServiceImpl<WebFollowMapper, WebFollow
     @Override
     public Page<FollowVO> getFollowInfo(long currentPage, long pageSize) {
         Page<FollowVO> result = new Page<>();
-        Long userId = UserHolder.getUserId();
+        Long currentUserId = UserHolder.getUserId();
 
         Page<WebFollow> followPage = this.page(new Page<>((int) currentPage, (int) pageSize),
                 new QueryWrapper<WebFollow>()
-                        .eq("fid", userId)
-                        .ne("uid", userId)
+                        .eq("fid", currentUserId)
+                        .ne("uid", currentUserId)
                         .orderByDesc("create_time"));
         List<WebFollow> followList = followPage.getRecords();
         long total = followPage.getTotal();
 
         List<Long> uids = followList.stream().map(WebFollow::getUid).toList();
+        // 没有关注者
+        if (CollUtil.isEmpty(uids)) {
+            return result;
+        }
+
         Map<Long, WebUser> userMap = userServiceFeign.getUserByIds(uids)
                 .stream().collect(Collectors.toMap(WebUser::getId, user -> user));
-
-        // 得到当前用户的所有关注
-        List<WebFollow> followers = this.list(new QueryWrapper<WebFollow>().eq("uid", userId));
+        // 得到当前用户的所有关注者
+        List<WebFollow> followers =
+                this.list(new LambdaQueryWrapper<>(WebFollow.class).eq(WebFollow::getFid, currentUserId));
         Set<Long> followerSet = followers.stream().map(WebFollow::getFid).collect(Collectors.toSet());
 
+        // 填充 VO
         List<FollowVO> followVOList = new ArrayList<>();
         followList.forEach(item -> {
             FollowVO followVo = new FollowVO();

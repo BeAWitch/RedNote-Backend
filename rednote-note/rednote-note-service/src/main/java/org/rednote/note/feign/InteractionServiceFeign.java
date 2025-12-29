@@ -1,5 +1,6 @@
 package org.rednote.note.feign;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.rednote.common.domain.dto.Result;
 import org.rednote.interaction.api.entity.WebComment;
 import org.rednote.interaction.api.entity.WebFollow;
@@ -8,6 +9,7 @@ import org.rednote.interaction.api.enums.UncheckedMessageEnum;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
@@ -24,14 +26,28 @@ public interface InteractionServiceFeign {
             @RequestParam("uid") Long uid
     );
 
+    @GetMapping("/web/likeOrFavorite/getLikeOrFavoriteByUidAndTypeOrderByTime")
+    Page<WebLikeOrFavorite> getLikeOrFavoriteByUidAndTypeOrderByTime(
+            @RequestParam("currentPage") Long currentPage,
+            @RequestParam("pageSize") Long pageSize,
+            @RequestParam("uid") Long uid,
+            @RequestParam("type") Integer type
+    );
+
+    @GetMapping("/web/likeOrFavorite/getLikeOrFavoriteByUidAndType")
+    List<WebLikeOrFavorite> getLikeOrFavoriteByUidAndType(
+            @RequestParam("uid") Long uid,
+            @RequestParam("type") Integer type
+    );
+
     @PostMapping("/web/likeOrFavorite/deleteLikeOrFavoriteByObjId")
-    boolean deleteLikeOrFavoriteByObjId(Long objId);
+    Boolean deleteLikeOrFavoriteByObjId(@RequestParam("objId") Long objId);
 
     @PostMapping("/web/likeOrFavorite/deleteLikeOrFavoriteByObjIds")
-    boolean deleteLikeOrFavoriteByObjIds(List<Long> objIds);
+    Boolean deleteLikeOrFavoriteByObjIds(@RequestBody List<Long> objIds);
 
     @PostMapping("/web/comment/deleteCommentByIds")
-    boolean deleteCommentByIds(List<Long> commentIds);
+    Boolean deleteCommentByIds(@RequestBody List<Long> commentIds);
 
     @GetMapping("/web/comment/getCommentByNid")
     List<WebComment> getCommentByNid(@RequestParam("nid") Long nid);
@@ -39,7 +55,7 @@ public interface InteractionServiceFeign {
     @GetMapping("/web/follow/getFollowByFid")
     List<WebFollow> getFollowByFid(@RequestParam("fid") Long fid);
 
-    @PostMapping("increaseUncheckedMessageCount")
+    @PostMapping("/web/chat/increaseUncheckedMessageCount")
     void increaseUncheckedMessageCount(
             @RequestParam("type")UncheckedMessageEnum type,
             @RequestParam("uid") Long uid,

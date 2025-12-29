@@ -6,6 +6,7 @@ import org.rednote.note.api.entity.WebNote;
 import org.rednote.note.api.entity.WebUserNoteRelation;
 import org.rednote.note.api.vo.NoteVO;
 import org.rednote.search.api.dto.SearchNoteDTO;
+import org.rednote.search.api.vo.NoteSearchVO;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -69,4 +70,14 @@ public interface IWebNoteService extends IService<WebNote> {
     Page<WebNote> selectNotePage(Page<WebNote> page ,SearchNoteDTO searchNoteDTO);
 
     List<WebUserNoteRelation> getUserNoteRelationByUserId(Long userId);
+
+    /**
+     * 获取当前用户信息
+     *
+     * @param currentPage 当前页
+     * @param pageSize    分页数
+     * @param userId      用户ID
+     * @param type        类型（1：笔记，2：点赞，3：收藏）
+     */
+    Page<NoteSearchVO> getTrendByUser(long currentPage, long pageSize, Long userId, int type);
 }

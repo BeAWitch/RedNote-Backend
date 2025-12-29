@@ -26,8 +26,12 @@ public class RedisUtil {
         redisTemplate.opsForValue().set(key, value, timeoutSeconds, timeUnit);
     }
 
-    public Object get(String key) {
-        return redisTemplate.opsForValue().get(key);
+    public String get(String key) {
+        String value = String.valueOf(redisTemplate.opsForValue().get(key));
+        if ("null".equals(value)) {
+            return null;
+        }
+        return value;
     }
 
     public void delete(String key) {

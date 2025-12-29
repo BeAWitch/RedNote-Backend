@@ -80,7 +80,7 @@ public class WebCommentController {
 
     @Operation(hidden = true)
     @PostMapping("deleteCommentByIds")
-    public boolean deleteCommentByIds(List<Long> commentIds) {
+    public Boolean deleteCommentByIds(@RequestBody List<Long> commentIds) {
         return commentService.removeBatchByIds(commentIds);
     }
 

@@ -24,7 +24,7 @@ public interface NoteServiceFeign {
     List<WebNote> getByIdsOrderedByTime(@RequestParam("noteIds") List<Long> noteIds);
 
     @PostMapping("/web/note/updateNote")
-    boolean updateNote(@RequestBody WebNote note);
+    Boolean updateNote(@RequestBody WebNote note);
 
     @GetMapping("/web/note/getUserNoteRelationByUserId")
     List<WebUserNoteRelation> getUserNoteRelationByUserId(@RequestParam("userId") Long userId);
@@ -39,19 +39,19 @@ public interface NoteServiceFeign {
     WebAlbum getAlbumByIdAndType(@RequestParam("albumId") Long albumId, @RequestParam("type") Integer type);
 
     @PostMapping("/web/album/addAlbum")
-    boolean addAlbum(@RequestBody WebAlbum album);
+    Boolean addAlbum(@RequestBody WebAlbum album);
 
     @PostMapping("/web/album/updateAlbum")
-    boolean updateAlbum(@RequestBody WebAlbum album);
+    Boolean updateAlbum(@RequestBody WebAlbum album);
 
     @PostMapping("/web/album/addAlbumNoteRelation")
-    boolean addAlbumNoteRelation(@RequestBody WebAlbumNoteRelation albumNoteRelation);
+    Boolean addAlbumNoteRelation(@RequestBody WebAlbumNoteRelation albumNoteRelation);
 
     @PostMapping("/web/album/updateAlbumNoteRelation")
-    boolean updateAlbumNoteRelation(@RequestBody WebAlbumNoteRelation albumNoteRelation);
+    Boolean updateAlbumNoteRelation(@RequestBody WebAlbumNoteRelation albumNoteRelation);
 
     @PostMapping("/web/album/deleteAlbumNoteRelation")
-    boolean deleteAlbumNoteRelationByAidAndNid(@RequestParam("aid") Long aid, @RequestParam("nid") Long nid);
+    Boolean deleteAlbumNoteRelationByAidAndNid(@RequestParam("aid") Long aid, @RequestParam("nid") Long nid);
 
     @GetMapping("/web/album/getAlbumNoteRelationByNid")
     List<WebAlbumNoteRelation> getAlbumNoteRelationByNid(@RequestParam("nid") Long nid);

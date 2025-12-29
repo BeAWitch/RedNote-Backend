@@ -39,6 +39,7 @@ import org.rednote.note.mapper.WebTagNoteRelationMapper;
 import org.rednote.note.mapper.WebUserNoteRelationMapper;
 import org.rednote.note.service.IWebNoteService;
 import org.rednote.search.api.dto.SearchNoteDTO;
+import org.rednote.search.api.vo.NoteSearchVO;
 import org.rednote.user.api.entity.WebUser;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -139,11 +140,7 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
 
         // 批量上传图片
         List<String> dataList = null;
-        try {
-            dataList = ossServiceFeign.uploadBatchFiles(files);
-        } catch (Exception e) {
-            throw new RedNoteException("图片上传失败");
-        }
+        dataList = ossServiceFeign.uploadBatchFiles(files);
         String[] urlArr = Objects.requireNonNull(dataList).toArray(new String[dataList.size()]);
         String urls = JSONUtil.toJsonStr(urlArr);
         note.setUrls(urls);
@@ -296,7 +293,7 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
     }
 
     @Override
-    public Page<WebNote> selectNotePage(Page<WebNote> page,SearchNoteDTO searchNoteDTO) {
+    public Page<WebNote> selectNotePage(Page<WebNote> page, SearchNoteDTO searchNoteDTO) {
         LambdaQueryWrapper<WebNote> queryWrapper = new LambdaQueryWrapper<>();
 
         // 关键词搜索（多字段模糊查询）
@@ -335,6 +332,27 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
         return userNoteRelationMapper.selectList(
                 new LambdaQueryWrapper<>(WebUserNoteRelation.class).eq(WebUserNoteRelation::getUid, userId)
         );
+    }
+
+    /**
+     * 获取当前用户信息
+     *
+     * @param currentPage 当前页
+     * @param pageSize    分页数
+     * @param userId      用户ID
+     * @param type        类型（1：笔记，2：点赞，3：收藏）
+     */
+    @Override
+    public Page<NoteSearchVO> getTrendByUser(long currentPage, long pageSize, Long userId, int type) {
+        Page<NoteSearchVO> resultPage;
+        if (type == 1) {
+            resultPage = this.getNoteByUser(currentPage, pageSize, userId);
+        } else if (type == 2) {
+            resultPage = this.getLikeOrFavoriteNoteByUser(currentPage, pageSize, userId, 1);
+        } else {
+            resultPage = this.getLikeOrFavoriteNoteByUser(currentPage, pageSize, userId, 3);
+        }
+        return resultPage;
     }
 
     /**
@@ -403,5 +421,89 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
                     .setContent(1L)
             );
         }
+    }
+
+    private Page<NoteSearchVO> getLikeOrFavoriteNoteByUser(long currentPage, long pageSize, Long userId, int type) {
+        Page<NoteSearchVO> noteSearchVoPage = new Page<>();
+        Page<WebLikeOrFavorite> likeOrFavoritePage;
+
+        // 所有点赞或收藏过的笔记
+        likeOrFavoritePage =
+                interactionServiceFeign.getLikeOrFavoriteByUidAndTypeOrderByTime(currentPage, pageSize, userId, type);
+        List<Long> likeOrFavoriteIdList =
+                likeOrFavoritePage.getRecords().stream().map(WebLikeOrFavorite::getLikeOrFavoriteId).toList();
+        long total = likeOrFavoritePage.getTotal();
+        if (CollUtil.isEmpty(likeOrFavoriteIdList)) {
+            return null;
+        }
+        List<WebNote> likeOrFavoriteNoteList = this.listByIds(likeOrFavoriteIdList);
+
+        Long currentUserId = UserHolder.getUserId();
+        // 是否点赞
+        List<Long> likedNoteIds = interactionServiceFeign.getLikeOrFavoriteByUidAndType(currentUserId, 1)
+                .stream()
+                .map(WebLikeOrFavorite::getLikeOrFavoriteId)
+                .toList();
+
+        // 笔记对应的用户
+        Map<Long, WebUser> userMap = likedNoteIds.stream()
+                .map(likedNoteId -> {
+                    Long uid = this.getById(likedNoteId).getUid();
+                    return userServiceFeign.getUserById(uid).getData();
+                })
+                .collect(Collectors.toMap(WebUser::getId, user -> user));
+
+        // 填充 VO
+        List<NoteSearchVO> noteSearchVOList = likeOrFavoriteNoteList.stream().map(note -> {
+            NoteSearchVO noteSearchVO = BeanUtil.copyProperties(note, NoteSearchVO.class);
+            noteSearchVO.setIsLike(likedNoteIds.contains(note.getId()));
+            noteSearchVO.setAvatar(userMap.get(note.getUid()).getAvatar());
+            noteSearchVO.setUsername(userMap.get(note.getUid()).getUsername());
+            return noteSearchVO;
+        }).toList();
+
+        noteSearchVoPage.setRecords(noteSearchVOList);
+        noteSearchVoPage.setTotal(total);
+        return noteSearchVoPage;
+    }
+
+    private Page<NoteSearchVO> getNoteByUser(long currentPage, long pageSize, Long userId) {
+        Page<NoteSearchVO> noteSearchVoPage = new Page<>();
+        // 获取用户发布的笔记
+        Page<WebNote> notePage;
+        notePage = this.page(new Page<>(currentPage, pageSize),
+                new QueryWrapper<WebNote>()
+                        .eq("uid", userId)
+                        .orderByDesc("pinned", "update_time"));
+        List<WebNote> noteList = notePage.getRecords();
+        long total = notePage.getTotal();
+        if (CollUtil.isEmpty(noteList)) {
+            return null;
+        }
+
+        // 得到用户的信息
+        WebUser user = userServiceFeign.getUserById(userId).getData();
+
+        // 当前用户是否点赞
+        Long currentUserId = UserHolder.getUserId();
+        Set<Long> likeOrFavoriteIds = interactionServiceFeign.getLikeOrFavoriteByUidAndType(currentUserId, 1)
+                .stream()
+                .map(WebLikeOrFavorite::getLikeOrFavoriteId)
+                .collect(Collectors.toSet());
+
+        // 填充 VO
+        List<NoteSearchVO> noteSearchVOList = noteList.stream()
+                .map(note -> {
+                    NoteSearchVO noteSearchVo = BeanUtil.copyProperties(note, NoteSearchVO.class);
+                    noteSearchVo.setUsername(user.getUsername())
+                            .setAvatar(user.getAvatar())
+                            .setIsLike(likeOrFavoriteIds.contains(note.getId()))
+                            .setTime(note.getUpdateTime().getTime());
+                    return noteSearchVo;
+                }).toList();
+
+        noteSearchVoPage.setRecords(noteSearchVOList);
+        noteSearchVoPage.setTotal(total);
+        return noteSearchVoPage;
     }
 }

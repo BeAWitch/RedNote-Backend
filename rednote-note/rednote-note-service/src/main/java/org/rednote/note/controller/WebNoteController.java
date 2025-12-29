@@ -11,7 +11,9 @@ import org.rednote.note.api.entity.WebUserNoteRelation;
 import org.rednote.note.api.vo.NoteVO;
 import org.rednote.note.service.IWebNoteService;
 import org.rednote.search.api.dto.SearchNoteDTO;
+import org.rednote.search.api.vo.NoteSearchVO;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -69,6 +71,16 @@ public class WebNoteController {
         return Result.ok(flag);
     }
 
+    @Operation(summary = "获取用户的动态", description = "获取用户的动态")
+    @GetMapping("getTrendByUser/{currentPage}/{pageSize}")
+    public Result<?> getTrendByUser(@Parameter(description = "当前页码") @PathVariable long currentPage,
+                                    @Parameter(description = "每页大小") @PathVariable long pageSize,
+                                    @Parameter(description = "用户 ID") Long userId,
+                                    @Parameter(description = "类型（1：笔记，2：点赞，3：收藏）") int type) {
+        Page<NoteSearchVO> pageInfo = noteService.getTrendByUser(currentPage, pageSize, userId, type);
+        return Result.ok(pageInfo);
+    }
+
     /**
      * 下方用于远程调用
      */
@@ -93,7 +105,7 @@ public class WebNoteController {
 
     @Operation(hidden = true)
     @PostMapping("updateNote")
-    public boolean updateNote(@RequestBody WebNote note) {
+    public Boolean updateNote(@RequestBody WebNote note) {
         return noteService.updateById(note);
     }
 

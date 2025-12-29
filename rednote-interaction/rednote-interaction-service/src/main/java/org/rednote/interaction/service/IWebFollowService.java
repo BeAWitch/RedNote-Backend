@@ -19,7 +19,7 @@ public interface IWebFollowService extends IService<WebFollow> {
      * @param offset   上一次的查询中最小时间戳的个数
      * @param count    查询的数量
      */
-    ScrollResult<TrendVO> getFollowTrend(long lastTime, int offset, int count);
+    ScrollResult<TrendVO> getFollowTrend(Long lastTime, Integer offset, Integer count);
 
     /**
      * 关注用户
