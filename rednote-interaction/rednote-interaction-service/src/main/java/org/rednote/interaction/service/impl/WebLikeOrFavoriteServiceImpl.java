@@ -4,7 +4,6 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -25,8 +24,6 @@ import org.rednote.interaction.mapper.WebCommentMapper;
 import org.rednote.interaction.mapper.WebLikeOrFavoriteMapper;
 import org.rednote.interaction.service.IWebChatService;
 import org.rednote.interaction.service.IWebLikeOrFavoriteService;
-import org.rednote.note.api.entity.WebAlbum;
-import org.rednote.note.api.entity.WebAlbumNoteRelation;
 import org.rednote.note.api.entity.WebNote;
 import org.rednote.user.api.entity.WebUser;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -179,14 +176,6 @@ public class WebLikeOrFavoriteServiceImpl extends ServiceImpl<WebLikeOrFavoriteM
                 commentVoMap.put(item.getId(), commentVo);
             }));
         }
-        // 专辑
-        List<Long> aids = likeOrFavoriteList.stream()
-                .filter(e -> e.getType() == 4)
-                .map(WebLikeOrFavorite::getLikeOrFavoriteId).toList();
-        Map<Long, WebAlbum> albumMap = new HashMap<>(16);
-        if (!aids.isEmpty()) {
-            albumMap = noteServiceFeign.getAlbumByIds(aids).stream().collect(Collectors.toMap(WebAlbum::getId, album -> album));
-        }
 
         // 填充 VO
         List<LikeOrFavoriteVO> likeOrFavoriteVOList = new ArrayList<>();
@@ -203,12 +192,6 @@ public class WebLikeOrFavoriteServiceImpl extends ServiceImpl<WebLikeOrFavoriteM
                     likeOrFavoriteVo.setItemId(commentVo.getId())
                             .setItemCover(commentVo.getNoteCover())
                             .setContent(commentVo.getContent());
-                    break;
-                case 4:
-                    WebAlbum album = albumMap.get(model.getLikeOrFavoriteId());
-                    likeOrFavoriteVo.setItemId(album.getId())
-                            .setItemCover(album.getAlbumCover())
-                            .setContent(album.getTitle());
                     break;
                 default:
                     WebNote note = noteMap.get(model.getLikeOrFavoriteId());
@@ -228,73 +211,23 @@ public class WebLikeOrFavoriteServiceImpl extends ServiceImpl<WebLikeOrFavoriteM
      */
     private void updateLikeFavoriteCount(LikeOrFavoriteDTO likeOrFavoriteDTO, int val) {
         switch (likeOrFavoriteDTO.getType()) {
-            case 1:
+            case 1: // 点赞笔记
                 WebNote likeNote = noteServiceFeign.getNoteById(likeOrFavoriteDTO.getLikeOrFavoriteId());
                 likeNote.setLikeCount(likeNote.getLikeCount() + val);
                 noteServiceFeign.updateNote(likeNote);
                 break;
-            case 2:
+            case 2: // 点赞评论
                 WebComment comment = commentMapper.selectById(likeOrFavoriteDTO.getLikeOrFavoriteId());
                 if (ObjectUtil.isNotNull(comment)) {
                     comment.setLikeCount(comment.getLikeCount() + val);
                     commentMapper.updateById(comment);
                 }
                 break;
-            case 3:
-                Long currentUid = UserHolder.getUserId();
+            case 3: // 收藏笔记
                 WebNote favoriteNote = noteServiceFeign.getNoteById(likeOrFavoriteDTO.getLikeOrFavoriteId());
                 favoriteNote.setFavoriteCount(favoriteNote.getFavoriteCount() + val);
                 noteServiceFeign.updateNote(favoriteNote);
-
-                WebAlbumNoteRelation albumNoteRelation = new WebAlbumNoteRelation();
-                albumNoteRelation.setNid(favoriteNote.getId());
-                if (val == 1) {
-                    WebAlbum album = noteServiceFeign.getAlbumByIdAndType(currentUid, 0);
-                    Integer imgCount = favoriteNote.getCount();
-                    if (ObjectUtil.isEmpty(album)) {
-                        album = new WebAlbum();
-                        album.setTitle("默认专辑");
-                        album.setUid(currentUid);
-                        album.setAlbumCover(favoriteNote.getNoteCover());
-                        album.setNoteCount(Long.valueOf(imgCount));
-                        noteServiceFeign.addAlbum(album);
-                    } else {
-                        album.setNoteCount(album.getNoteCount() + imgCount);
-                        if (StrUtil.isBlank(album.getAlbumCover())) {
-                            album.setAlbumCover(favoriteNote.getNoteCover());
-                        }
-                        noteServiceFeign.updateAlbum(album);
-                    }
-                    albumNoteRelation.setAid(album.getId());
-                    noteServiceFeign.addAlbumNoteRelation(albumNoteRelation);
-                } else {
-                    List<WebAlbumNoteRelation> albumNoteRelationList = noteServiceFeign.getAlbumNoteRelationByNid(favoriteNote.getId());
-                    List<Long> aids = albumNoteRelationList.stream()
-                            .map(WebAlbumNoteRelation::getAid)
-                            .toList();
-                    List<WebAlbum> albumList = noteServiceFeign.getAlbumByIds(aids);
-                    WebAlbum album = albumList.stream()
-                            .filter(item -> item.getUid().equals(currentUid))
-                            .findFirst()
-                            .orElse(null);
-                    Integer imgCount = favoriteNote.getCount();
-                    long nums = 0;
-                    if (album != null) {
-                        nums = album.getNoteCount() - imgCount;
-                        if (nums <= 0) {
-                            album.setAlbumCover(null);
-                        }
-                        album.setNoteCount(nums);
-                        noteServiceFeign.updateAlbum(album);
-                        noteServiceFeign.deleteAlbumNoteRelationByAidAndNid(album.getId(), favoriteNote.getId());
-                    }
-                }
-                break;
             default:
-                // 收藏专辑
-                WebAlbum favoriteAlbum = noteServiceFeign.getAlbumById(likeOrFavoriteDTO.getLikeOrFavoriteId());
-                favoriteAlbum.setFavoriteCount(favoriteAlbum.getFavoriteCount() + val);
-                noteServiceFeign.updateAlbum(favoriteAlbum);
                 break;
         }
     }

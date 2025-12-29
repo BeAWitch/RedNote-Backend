@@ -23,7 +23,6 @@ import org.rednote.interaction.api.entity.WebLikeOrFavorite;
 import org.rednote.interaction.api.enums.UncheckedMessageEnum;
 import org.rednote.interaction.api.util.WebSocketServer;
 import org.rednote.note.api.dto.NoteDTO;
-import org.rednote.note.api.entity.WebAlbumNoteRelation;
 import org.rednote.note.api.entity.WebNote;
 import org.rednote.note.api.entity.WebTag;
 import org.rednote.note.api.entity.WebTagNoteRelation;
@@ -32,7 +31,6 @@ import org.rednote.note.api.vo.NoteVO;
 import org.rednote.note.feign.InteractionServiceFeign;
 import org.rednote.note.feign.OssServiceFeign;
 import org.rednote.note.feign.UserServiceFeign;
-import org.rednote.note.mapper.WebAlbumNoteRelationMapper;
 import org.rednote.note.mapper.WebNoteMapper;
 import org.rednote.note.mapper.WebTagMapper;
 import org.rednote.note.mapper.WebTagNoteRelationMapper;
@@ -64,7 +62,6 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
     private final WebTagNoteRelationMapper tagNoteRelationMapper;
     private final WebUserNoteRelationMapper userNoteRelationMapper;
     private final WebTagMapper tagMapper;
-    private final WebAlbumNoteRelationMapper albumNoteRelationMapper;
     private final OssServiceFeign ossServiceFeign;
     private final StringRedisTemplate stringRedisTemplate;
     private final WebSocketServer webSocketServer;
@@ -186,7 +183,6 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
             }
             tagNoteRelationMapper.delete(new QueryWrapper<WebTagNoteRelation>().eq("nid", noteId));
             userNoteRelationMapper.delete(new QueryWrapper<WebUserNoteRelation>().eq("nid", noteId));
-            albumNoteRelationMapper.delete(new QueryWrapper<WebAlbumNoteRelation>().eq("nid", noteId));
         });
         this.removeBatchByIds(noteIds);
     }

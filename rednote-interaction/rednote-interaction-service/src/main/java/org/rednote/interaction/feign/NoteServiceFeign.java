@@ -1,7 +1,5 @@
 package org.rednote.interaction.feign;
 
-import org.rednote.note.api.entity.WebAlbum;
-import org.rednote.note.api.entity.WebAlbumNoteRelation;
 import org.rednote.note.api.entity.WebNote;
 import org.rednote.note.api.entity.WebUserNoteRelation;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -28,31 +26,4 @@ public interface NoteServiceFeign {
 
     @GetMapping("/web/note/getUserNoteRelationByUserId")
     List<WebUserNoteRelation> getUserNoteRelationByUserId(@RequestParam("userId") Long userId);
-
-    @GetMapping("/web/album/getAlbumById")
-    WebAlbum getAlbumById(@RequestParam("albumId") Long albumId);
-
-    @GetMapping("/web/album/getAlbumByIds")
-    List<WebAlbum> getAlbumByIds(@RequestParam("albumIds") List<Long> albumIds);
-
-    @GetMapping("/web/album/getAlbumByIdAndType")
-    WebAlbum getAlbumByIdAndType(@RequestParam("albumId") Long albumId, @RequestParam("type") Integer type);
-
-    @PostMapping("/web/album/addAlbum")
-    Boolean addAlbum(@RequestBody WebAlbum album);
-
-    @PostMapping("/web/album/updateAlbum")
-    Boolean updateAlbum(@RequestBody WebAlbum album);
-
-    @PostMapping("/web/album/addAlbumNoteRelation")
-    Boolean addAlbumNoteRelation(@RequestBody WebAlbumNoteRelation albumNoteRelation);
-
-    @PostMapping("/web/album/updateAlbumNoteRelation")
-    Boolean updateAlbumNoteRelation(@RequestBody WebAlbumNoteRelation albumNoteRelation);
-
-    @PostMapping("/web/album/deleteAlbumNoteRelation")
-    Boolean deleteAlbumNoteRelationByAidAndNid(@RequestParam("aid") Long aid, @RequestParam("nid") Long nid);
-
-    @GetMapping("/web/album/getAlbumNoteRelationByNid")
-    List<WebAlbumNoteRelation> getAlbumNoteRelationByNid(@RequestParam("nid") Long nid);
 }
