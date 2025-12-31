@@ -110,12 +110,20 @@ public class WebNoteController {
     }
 
     @Operation(hidden = true)
-    @PostMapping("selectNotePage")
-    public Page<WebNote> selectNotePage(
+    @PostMapping("selectNotePageWithCondition")
+    public Page<WebNote> selectNotePageWithCondition(
             @RequestParam("currentPage") Long currentPage,
             @RequestParam("pageSize") Long pageSize,
             @RequestBody SearchNoteDTO searchNoteDTO) {
-        return noteService.selectNotePage(new Page<>(currentPage, pageSize) ,searchNoteDTO);
+        return noteService.selectNotePageWithCondition(new Page<>(currentPage, pageSize) ,searchNoteDTO);
+    }
+
+    @Operation(hidden = true)
+    @GetMapping("selectNotePage")
+    public Page<WebNote> selectNotePage(
+            @RequestParam("currentPage") Long currentPage,
+            @RequestParam("pageSize") Long pageSize) {
+        return noteService.page(new Page<>(currentPage, pageSize));
     }
 
     @Operation(hidden = true)

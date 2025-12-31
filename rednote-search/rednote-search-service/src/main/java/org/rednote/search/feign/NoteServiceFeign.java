@@ -17,17 +17,28 @@ import java.util.List;
 @FeignClient(name = "note-service")
 public interface NoteServiceFeign {
 
+    @GetMapping("/web/note/getById")
+    WebNote getNoteById(@RequestParam("noteId") Long noteId);
+
+    @GetMapping("/web/note/getByIds")
+    List<WebNote> getNoteByIds(@RequestParam("noteIds") List<Long> noteIds);
+
     @GetMapping("/web/tag/getTagByIds")
     List<WebTag> getTagByIds(@RequestParam("tagIds") List<Long> tagIds);
 
     @GetMapping("/web/tag/getTagNoteRelationByNid")
     List<WebTagNoteRelation> getTagNoteRelationByNid(@RequestParam("nid") Long nid);
 
-    @PostMapping("/web/note/selectNotePage")
-    Page<WebNote> selectNotePage(
+    @PostMapping("/web/note/selectNotePageWithCondition")
+    Page<WebNote> selectNotePageWithCondition(
             @RequestParam("currentPage") Long currentPage,
             @RequestParam("pageSize") Long pageSize,
             @RequestBody SearchNoteDTO searchNoteDTO);
+
+    @GetMapping("/web/note/selectNotePage")
+    Page<WebNote> selectNotePage(
+            @RequestParam("currentPage") Long currentPage,
+            @RequestParam("pageSize") Long pageSize);
 
     @GetMapping("/web/category/selectCategoryList")
     List<WebNavbar> selectCategoryListByKeyword(@RequestParam("keyword") String keyword);

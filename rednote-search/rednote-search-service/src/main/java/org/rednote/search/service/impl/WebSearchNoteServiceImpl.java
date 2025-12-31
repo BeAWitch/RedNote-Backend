@@ -1,5 +1,6 @@
 package org.rednote.search.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson2.JSON;
@@ -14,10 +15,12 @@ import org.rednote.note.api.entity.WebNote;
 import org.rednote.note.api.entity.WebTag;
 import org.rednote.note.api.entity.WebTagNoteRelation;
 import org.rednote.search.api.dto.SearchNoteDTO;
+import org.rednote.search.api.entity.EsNote;
 import org.rednote.search.api.vo.NoteSearchVO;
 import org.rednote.search.feign.InteractionServiceFeign;
 import org.rednote.search.feign.NoteServiceFeign;
 import org.rednote.search.feign.UserServiceFeign;
+import org.rednote.search.service.IEsSearchService;
 import org.rednote.search.service.IWebSearchNoteService;
 import org.rednote.user.api.entity.WebUser;
 import org.springframework.stereotype.Service;
@@ -37,6 +40,7 @@ public class WebSearchNoteServiceImpl implements IWebSearchNoteService {
     private final UserServiceFeign userServiceFeign;
     private final NoteServiceFeign noteServiceFeign;
     private final InteractionServiceFeign interactionServiceFeign;
+    private final IEsSearchService esSearchService;
 
     /**
      * 搜索对应的笔记
@@ -47,21 +51,30 @@ public class WebSearchNoteServiceImpl implements IWebSearchNoteService {
      */
     @Override
     public Page<NoteSearchVO> getNoteByDTO(long currentPage, long pageSize, SearchNoteDTO searchNoteDTO) {
-        Page<WebNote> resultPage = noteServiceFeign.selectNotePage(currentPage, pageSize, searchNoteDTO);
+        IPage<NoteSearchVO> resultIPage;
 
-        // 转换为 VO 并填充额外信息
-        IPage<NoteSearchVO> noteSearchVOIPage = resultPage.convert(this::convertToNoteSearchVO);
+        try {
+            // 查询
+            Page<EsNote> esNotePage = esSearchService.searchNote(currentPage, pageSize, searchNoteDTO);
+            // 转换为 VO 并填充额外信息
+            resultIPage = esNotePage.convert(this::convertToNoteSearchVO);
+        } catch (Exception e) {
+            log.error("ES 搜索异常，降级为数据库搜索", e);
+            // 查询
+            Page<WebNote> notePage = noteServiceFeign.selectNotePageWithCondition(currentPage, pageSize, searchNoteDTO);
+            // 转换为 VO 并填充额外信息
+            resultIPage = notePage.convert(this::convertToNoteSearchVO);
+        }
 
         return new Page<NoteSearchVO>()
-                .setRecords(noteSearchVOIPage.getRecords())
-                .setTotal(noteSearchVOIPage.getTotal());
+                .setRecords(resultIPage.getRecords())
+                .setTotal(resultIPage.getTotal());
     }
 
     /**
      * 搜索对应的分类
      *
      * @param SearchNoteDTO 笔记
-     * @return
      */
     @Override
     public List<WebNavbar> getCategoryAgg(SearchNoteDTO SearchNoteDTO) {
@@ -82,7 +95,7 @@ public class WebSearchNoteServiceImpl implements IWebSearchNoteService {
         searchNoteDTO.setType(1);
 
         // 执行查询
-        Page<WebNote> resultPage = noteServiceFeign.selectNotePage(currentPage, pageSize, searchNoteDTO);
+        Page<WebNote> resultPage = noteServiceFeign.selectNotePageWithCondition(currentPage, pageSize, searchNoteDTO);
 
         // 转换为 VO 并填充额外信息
         IPage<NoteSearchVO> noteSearchVOIPage = resultPage.convert(this::convertToNoteSearchVO);
@@ -149,6 +162,13 @@ public class WebSearchNoteServiceImpl implements IWebSearchNoteService {
         fillLikeStatus(vo, note.getId());
 
         return vo;
+    }
+
+    /**
+     * 将 EsNote 转换为 NoteSearchVO 并填充额外信息
+     */
+    private NoteSearchVO convertToNoteSearchVO(EsNote note) {
+        return convertToNoteSearchVO(BeanUtil.copyProperties(note, WebNote.class));
     }
 
     /**

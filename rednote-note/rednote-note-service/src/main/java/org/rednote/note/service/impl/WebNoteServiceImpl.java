@@ -289,7 +289,7 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
     }
 
     @Override
-    public Page<WebNote> selectNotePage(Page<WebNote> page, SearchNoteDTO searchNoteDTO) {
+    public Page<WebNote> selectNotePageWithCondition(Page<WebNote> page, SearchNoteDTO searchNoteDTO) {
         LambdaQueryWrapper<WebNote> queryWrapper = new LambdaQueryWrapper<>();
 
         // 关键词搜索（多字段模糊查询）

@@ -67,7 +67,7 @@ public interface IWebNoteService extends IService<WebNote> {
      */
     List<WebNote> getByIdsOrderedByTime(List<Long> noteIds);
 
-    Page<WebNote> selectNotePage(Page<WebNote> page ,SearchNoteDTO searchNoteDTO);
+    Page<WebNote> selectNotePageWithCondition(Page<WebNote> page, SearchNoteDTO searchNoteDTO);
 
     List<WebUserNoteRelation> getUserNoteRelationByUserId(Long userId);
 

@@ -30,6 +30,11 @@ spring:
           max-idle: 8
           max-active: 8
           max-wait: -1ms
+    elasticsearch:
+      rest:
+        uris: http://localhost:9200
+      repositories:
+        enabled: true
 
 logging:
   level:

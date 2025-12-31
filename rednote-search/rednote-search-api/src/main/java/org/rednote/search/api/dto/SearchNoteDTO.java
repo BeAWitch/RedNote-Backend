@@ -12,7 +12,7 @@ public class SearchNoteDTO implements Serializable {
     @Schema(description = "关键词")
     private String keyword;
 
-    @Schema(description = "排序类型: 0-全部, 1-点赞排序, 2-时间排序")
+    @Schema(description = "排序类型: 0-默认, 1-点赞排序, 2-时间排序")
     private Integer type;
 
     @Schema(description = "分类 ID")
