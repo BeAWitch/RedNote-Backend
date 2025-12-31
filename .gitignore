@@ -32,3 +32,4 @@ build/
 
 ### VS Code ###
 .vscode/
+/rednote-oss/rednote-oss-service/src/main/resources/application-dev.yml

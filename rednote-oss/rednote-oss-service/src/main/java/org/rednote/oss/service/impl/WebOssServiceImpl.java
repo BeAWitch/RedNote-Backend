@@ -1,9 +1,13 @@
 package org.rednote.oss.service.impl;
 
 import cn.hutool.core.lang.UUID;
+import com.aliyun.oss.OSS;
+import com.aliyun.oss.OSSClientBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.rednote.oss.config.FileUploadConfig;
+import org.rednote.oss.config.OssConfig;
 import org.rednote.oss.service.IWebOssService;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -13,20 +17,22 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 
 /**
  * OSS
- *
- * TODO 云存储
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class WebOssServiceImpl implements IWebOssService {
 
     private final FileUploadConfig fileUploadConfig;
+    private final OssConfig ossConfig;
 
     /**
      * 上传文件
@@ -38,9 +44,10 @@ public class WebOssServiceImpl implements IWebOssService {
     public String save(MultipartFile file) {
         Integer type = fileUploadConfig.getType();
         switch (type) {
-            case 0:
-                // 本地存储
+            case 0: // 本地存储
                 return localSave(file);
+            case 1: // 阿里云 OSS
+                return ossUpload(file);
             default:
                 throw new IllegalArgumentException("不支持的存储类型: " + type);
         }
@@ -120,6 +127,30 @@ public class WebOssServiceImpl implements IWebOssService {
         for (String path : filePaths) {
             delete(path);
         }
+    }
+
+    private String ossUpload(MultipartFile file) {
+        String bucketName = ossConfig.getBucketName();
+        String endPoint = ossConfig.getEndpoint();
+        String accessKeyId = ossConfig.getAccessKeyId();
+        String accessKeySecret = ossConfig.getAccessKeySecret();
+
+        OSS ossClient = new OSSClientBuilder().build(endPoint, accessKeyId, accessKeySecret);
+        String originalFilename = file.getOriginalFilename();
+        String fileName = UUID.randomUUID().toString().replaceAll("-", "")
+                + originalFilename.substring(originalFilename.lastIndexOf("."));
+        String folder = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+        String uploadFileName = "user/" + folder + "/" + fileName;
+
+        try {
+            ossClient.putObject(bucketName, uploadFileName, file.getInputStream());
+            return "https://" + bucketName + "." + endPoint + "/" + uploadFileName;
+        } catch (IOException e) {
+            log.error("文件上传失败: {}", e.getMessage());
+        } finally {
+            ossClient.shutdown();
+        }
+        return null;
     }
 
     /**

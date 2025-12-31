@@ -3,7 +3,6 @@ package org.rednote.oss.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.rednote.oss.service.IWebOssService;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,7 +18,6 @@ import java.util.List;
 @RequestMapping("/web/oss")
 @RestController
 @RequiredArgsConstructor
-@Slf4j
 public class WebOssController {
 
     private final IWebOssService ossService;
@@ -43,7 +41,6 @@ public class WebOssController {
     @Operation(hidden = true)
     @PostMapping(value = "uploadBatchFiles", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     List<String> uploadBatchFiles(@RequestPart("files") MultipartFile[] files) {
-        log.info("上传文件数量：{}", files.length);
         return ossService.saveBatch(files);
     }
 

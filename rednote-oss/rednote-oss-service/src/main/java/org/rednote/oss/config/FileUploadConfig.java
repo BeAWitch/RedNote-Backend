@@ -23,10 +23,13 @@ public class FileUploadConfig implements WebMvcConfigurer {
     private String path;
 
     /**
-     * 文件虚拟地址
+     * 本地文件虚拟地址
      */
     private String virtualPathPrefix = "/uploads/";
 
+    /**
+     * 用于处理本地文件的访问
+     */
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler(virtualPathPrefix + "**")

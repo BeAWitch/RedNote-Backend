@@ -5,6 +5,10 @@ server:
 spring:
   application:
     name: oss-service
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
   cloud:
     nacos:
       server-addr: 192.168.56.2:8848 # nacos
@@ -25,9 +29,16 @@ springdoc:
 
 # Oss配置
 oss:
-  type: 0 # 0：是本地存储
+  type: 1 # 0：本地存储, 1：阿里云存储
 
-# 文件上传路径
+# 本地文件上传路径
 file:
   upload:
-    path: D:/study/dev/temp/
+    path: xxxxxxxxxxxxxx
+
+aliyun:
+  oss:
+    endpoint: xxxxxxxxxxxxxxxxxxxxxxxxxx
+    access-key-id: xxxxxxxxxxxxxxxxxxxxx
+    access-key-secret: xxxxxxxxxxxxxxxxx
+    bucket-name: xxxxxxxxxxxxxxxxxxxxxxx
