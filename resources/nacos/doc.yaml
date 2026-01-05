@@ -1,0 +1,15 @@
+knife4j:
+  setting:
+    language: zh_cn
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+  group-configs:
+    - group: ${rednote.doc.group}
+      paths-to-match: '/**'
+      packages-to-scan: ${rednote.doc.package}

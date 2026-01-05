@@ -1,0 +1,10 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/rednote?useSSL=false&serverTimezone=UTC
+    username: root
+    password: root
+  jackson:
+    default-property-inclusion: non_null
+mybatis-plus:
+  type-aliases-package: ${rednote.mp.package}

@@ -2,30 +2,11 @@ server:
   port: 8085
   servlet:
     context-path: /
-spring:
-  application:
-    name: oss-service
-  servlet:
-    multipart:
-      max-file-size: 10MB
-      max-request-size: 10MB
-  cloud:
-    nacos:
-      server-addr: 192.168.56.2:8848 # nacos
 
-logging:
-  level:
-    org.rednote: debug
-
-springdoc:
-  api-docs:
-    enabled: true
-    path: /v3/api-docs
-  swagger-ui:
-    path: /swagger-ui.html
-    disable-swagger-default-url: true
-    display-request-duration: true
-    packages-to-scan: org.rednote.oss.controller
+rednote:
+  doc:
+    group: '文件服务'
+    package: org.rednote.oss.controller
 
 # Oss配置
 oss:

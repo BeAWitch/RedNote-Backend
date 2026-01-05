@@ -13,9 +13,9 @@ public class SwaggerConfig {
     @Bean
     public OpenAPI springDocOpenAPI() {
         return new OpenAPI()
-                .info(new Info().title("红书")
+                .info(new Info().title("红书接口文档")
                         .contact(new Contact())
-                        .description("API文档")
+                        .description("API 文档")
                         .version("v1")
                         .license(new License().name("Apache 2.0").url("http://springdoc.org")))
                 .externalDocs(new ExternalDocumentation()
