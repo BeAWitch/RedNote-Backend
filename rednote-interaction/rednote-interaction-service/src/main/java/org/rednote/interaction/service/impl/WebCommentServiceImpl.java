@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import io.seata.spring.annotation.GlobalTransactional;
 import lombok.RequiredArgsConstructor;
 import org.rednote.common.exception.RedNoteException;
 import org.rednote.common.utils.UserHolder;
@@ -27,7 +28,6 @@ import org.rednote.note.api.entity.WebNote;
 import org.rednote.note.api.entity.WebUserNoteRelation;
 import org.rednote.user.api.entity.WebUser;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -55,7 +55,7 @@ public class WebCommentServiceImpl extends ServiceImpl<WebCommentMapper, WebComm
      *
      * @param commentDTO 评论
      */
-    @Transactional(rollbackFor = Exception.class)
+    @GlobalTransactional
     @Override
     public CommentVO saveCommentByDTO(CommentDTO commentDTO) {
         // 保存评论

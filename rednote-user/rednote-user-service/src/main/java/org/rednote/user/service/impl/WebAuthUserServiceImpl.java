@@ -8,6 +8,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.SecureUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import io.seata.spring.annotation.GlobalTransactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.rednote.common.constant.RedisConstants;
@@ -23,7 +24,6 @@ import org.rednote.user.util.AddressUtils;
 import org.rednote.user.util.IpUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -43,7 +43,7 @@ public class WebAuthUserServiceImpl extends ServiceImpl<WebUserMapper, WebUser> 
      * @param authUserDTO 用户
      */
     @Override
-    @Transactional
+    @GlobalTransactional
     public Map<String, Object> login(AuthUserDTO authUserDTO) {
         Map<String, Object> map = new HashMap<>();
         WebUser authUser;

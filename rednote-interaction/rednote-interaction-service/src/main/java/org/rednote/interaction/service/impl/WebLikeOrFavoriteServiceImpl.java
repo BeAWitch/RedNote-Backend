@@ -7,6 +7,7 @@ import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import io.seata.spring.annotation.GlobalTransactional;
 import lombok.RequiredArgsConstructor;
 import org.rednote.common.constant.RedisConstants;
 import org.rednote.common.utils.UserHolder;
@@ -28,7 +29,6 @@ import org.rednote.note.api.entity.WebNote;
 import org.rednote.user.api.entity.WebUser;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -56,7 +56,7 @@ public class WebLikeOrFavoriteServiceImpl extends ServiceImpl<WebLikeOrFavoriteM
      *
      * @param likeOrFavoriteDTO 点赞收藏实体
      */
-    @Transactional(rollbackFor = Exception.class)
+    @GlobalTransactional
     @Override
     public void likeOrFavoriteByDTO(LikeOrFavoriteDTO likeOrFavoriteDTO) {
         Long currentUid = UserHolder.getUserId();

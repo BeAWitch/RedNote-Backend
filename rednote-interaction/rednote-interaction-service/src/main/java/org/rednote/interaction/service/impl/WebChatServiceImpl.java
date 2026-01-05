@@ -7,6 +7,7 @@ import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import io.seata.spring.annotation.GlobalTransactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.rednote.common.constant.RedisConstants;
@@ -33,7 +34,6 @@ import org.rednote.interaction.service.IWebChatService;
 import org.rednote.user.api.entity.WebUser;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -58,7 +58,7 @@ public class WebChatServiceImpl extends ServiceImpl<WebChatMessageMapper, WebCha
      * @param messageDTO 消息
      */
     @Override
-    @Transactional(rollbackFor = Exception.class)
+    @GlobalTransactional
     public void sendMessage(MessageDTO messageDTO) {
         List<WebChatConversationUserRelation> conversationUserRelationList = conversationUserRelationMapper.selectList(
                 new QueryWrapper<WebChatConversationUserRelation>().eq("user_id", messageDTO.getSendUid()));

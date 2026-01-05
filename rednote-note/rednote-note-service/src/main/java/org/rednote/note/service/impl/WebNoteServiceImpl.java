@@ -11,6 +11,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import io.seata.spring.annotation.GlobalTransactional;
 import lombok.RequiredArgsConstructor;
 import org.rednote.common.constant.RedisConstants;
 import org.rednote.common.enums.ResultCodeEnum;
@@ -41,7 +42,6 @@ import org.rednote.search.api.vo.NoteSearchVO;
 import org.rednote.user.api.entity.WebUser;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
@@ -119,7 +119,7 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
      * @param files    文件
      */
     @Override
-    @Transactional(rollbackFor = Exception.class)
+    @GlobalTransactional
     public Long saveNoteByDTO(String noteData, MultipartFile[] files) {
         Long currentUid = UserHolder.getUserId();
         // 更新用户笔记数量
@@ -156,7 +156,7 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
+    @GlobalTransactional
     public void deleteNoteByIds(List<String> noteIds) {
         List<WebNote> noteList = this.listByIds(noteIds);
         // TODO 这里需要优化，数据一致性问题
@@ -188,7 +188,7 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
+    @GlobalTransactional
     public void updateNoteByDTO(String noteData, MultipartFile[] files) {
         Long currentUid = UserHolder.getUserId();
         NoteDTO noteDTO = JSON.parseObject(noteData, NoteDTO.class);

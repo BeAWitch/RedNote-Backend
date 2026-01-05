@@ -12,3 +12,4 @@ spring:
           - data-id: log.yaml
           - data-id: doc.yaml
           - data-id: feign.yaml
+          - data-id: seata.yaml

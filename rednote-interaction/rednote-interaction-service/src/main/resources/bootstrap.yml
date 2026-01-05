@@ -13,3 +13,4 @@ spring:
           - data-id: doc.yaml
           - data-id: feign.yaml
           - data-id: file-size.yaml
+          - data-id: seata.yaml
