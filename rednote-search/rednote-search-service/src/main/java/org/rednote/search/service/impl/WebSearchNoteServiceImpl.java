@@ -94,14 +94,7 @@ public class WebSearchNoteServiceImpl implements IWebSearchNoteService {
         // 排序条件
         searchNoteDTO.setType(1);
 
-        // 执行查询
-        Page<WebNote> resultPage = noteServiceFeign.selectNotePageWithCondition(currentPage, pageSize, searchNoteDTO);
-
-        // 转换为 VO 并填充额外信息
-        IPage<NoteSearchVO> noteSearchVOIPage = resultPage.convert(this::convertToNoteSearchVO);
-        return new Page<NoteSearchVO>()
-                .setRecords(noteSearchVOIPage.getRecords())
-                .setTotal(noteSearchVOIPage.getTotal());
+        return getNoteByDTO(currentPage, pageSize, searchNoteDTO);
     }
 
     /**

@@ -113,10 +113,10 @@ public class EsSyncService implements IEsSyncService{
             EsNote esNote = convertToEsNote(webNote);
             esNoteRepository.save(esNote);
             
-            log.debug("同步笔记到ES成功，ID: {}", noteId);
+            log.debug("同步笔记到 ES 成功，ID: {}", noteId);
             
         } catch (Exception e) {
-            log.error("同步单条笔记到ES失败，ID: {}", noteId, e);
+            log.error("同步单条笔记到 ES 失败，ID: {}", noteId, e);
         }
     }
     
@@ -130,7 +130,7 @@ public class EsSyncService implements IEsSyncService{
             return;
         }
         
-        log.info("批量同步笔记到ES，数量: {}", noteIds.size());
+        log.info("批量同步笔记到 ES，数量: {}", noteIds.size());
         
         // 分批处理，每批 100 条
         List<List<Long>> batches = Lists.partition(noteIds, 100);
@@ -165,10 +165,30 @@ public class EsSyncService implements IEsSyncService{
         try {
             if (esNoteRepository.existsById(noteId)) {
                 esNoteRepository.deleteById(noteId);
-                log.debug("从ES删除笔记成功，ID: {}", noteId);
+                log.debug("从 ES 删除笔记成功，ID: {}", noteId);
             }
         } catch (Exception e) {
-            log.error("从ES删除笔记失败，ID: {}", noteId, e);
+            log.error("从 ES 删除笔记失败，ID: {}", noteId, e);
+        }
+    }
+
+    /**
+     * 批量删除 ES 中的笔记
+     */
+    @Override
+    @Async("taskExecutor")
+    public void batchDeleteNoteFromEs(List<Long> noteIds) {
+        if (noteIds == null || noteIds.isEmpty()) {
+            return;
+        }
+
+        log.info("从 ES 批量删除笔记，数量: {}", noteIds.size());
+
+        try {
+            esNoteRepository.deleteAllById(noteIds);
+            log.debug("从 ES 批量删除笔记成功，数量: {}", noteIds.size());
+        } catch (Exception e) {
+            log.error("从 ES 批量删除笔记失败", e);
         }
     }
     

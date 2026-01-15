@@ -13,6 +13,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import io.seata.spring.annotation.GlobalTransactional;
 import lombok.RequiredArgsConstructor;
+import org.rednote.common.constant.MQConstants;
 import org.rednote.common.constant.RedisConstants;
 import org.rednote.common.enums.ResultCodeEnum;
 import org.rednote.common.exception.RedNoteException;
@@ -40,6 +41,7 @@ import org.rednote.note.service.IWebNoteService;
 import org.rednote.search.api.dto.SearchNoteDTO;
 import org.rednote.search.api.vo.NoteSearchVO;
 import org.rednote.user.api.entity.WebUser;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -52,7 +54,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-// TODO 消息队列
 @Service
 @RequiredArgsConstructor
 public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> implements IWebNoteService {
@@ -65,6 +66,7 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
     private final OssServiceFeign ossServiceFeign;
     private final StringRedisTemplate stringRedisTemplate;
     private final WebSocketServer webSocketServer;
+    private final RabbitTemplate rabbitTemplate;
 
     /**
      * 获取笔记
@@ -149,6 +151,9 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
         // 绑定用户与笔记关系
         bindUserToNote(note);
 
+        // 同步到 ES
+        rabbitTemplate.convertAndSend(MQConstants.NOTE_EVENT_EXCHANGE, MQConstants.NOTE_CREATE_KEY, note.getId());
+
         // 消息推送
         pushToFollowers(currentUid, note.getId());
 
@@ -183,6 +188,9 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
             }
             tagNoteRelationMapper.delete(new QueryWrapper<WebTagNoteRelation>().eq("nid", noteId));
             userNoteRelationMapper.delete(new QueryWrapper<WebUserNoteRelation>().eq("nid", noteId));
+
+            // 同步到 ES
+            rabbitTemplate.convertAndSend(MQConstants.NOTE_EVENT_EXCHANGE, MQConstants.NOTE_DELETE_KEY, noteId);
         });
         this.removeBatchByIds(noteIds);
     }
@@ -230,6 +238,9 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
         if (!updateSuccess) {
             throw new RuntimeException("更新笔记失败");
         }
+
+        // 同步到 ES
+        rabbitTemplate.convertAndSend(MQConstants.NOTE_EVENT_EXCHANGE, MQConstants.NOTE_UPDATE_KEY, note.getId());
 
         // 删除旧图
         if (StrUtil.isNotBlank(originalNote.getUrls())) {

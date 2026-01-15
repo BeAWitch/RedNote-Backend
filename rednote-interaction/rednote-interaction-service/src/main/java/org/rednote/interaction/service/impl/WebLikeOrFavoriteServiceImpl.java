@@ -109,7 +109,7 @@ public class WebLikeOrFavoriteServiceImpl extends ServiceImpl<WebLikeOrFavoriteM
 
     /**
      * 是否点赞或收藏
-     *
+     * TODO redis 数据同步问题，添加数据库搜索
      * @param likeOrFavoriteDTO 点赞收藏实体
      */
     @Override

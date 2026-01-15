@@ -23,4 +23,9 @@ public interface IEsSyncService {
      * 删除 ES 中的笔记
      */
     void deleteNoteFromEs(Long noteId);
+
+    /**
+     * 批量删除 ES 中的笔记
+     */
+    void batchDeleteNoteFromEs(List<Long> noteIds);
 }

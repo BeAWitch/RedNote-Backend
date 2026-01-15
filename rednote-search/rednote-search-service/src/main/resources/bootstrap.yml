@@ -14,3 +14,4 @@ spring:
           - data-id: feign.yaml
           - data-id: elasticsearch.yaml
           - data-id: file-size.yaml
+          - data-id: rabbitmq.yaml
