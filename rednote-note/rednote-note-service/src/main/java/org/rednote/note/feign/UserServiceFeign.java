@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
+import java.util.Set;
 
 @FeignClient(name = "user-service")
 public interface UserServiceFeign {
@@ -17,7 +18,7 @@ public interface UserServiceFeign {
     Result<WebUser> getUserById(@RequestParam("userId") Long userId);
 
     @GetMapping("/web/user/getUserByIds")
-    List<WebUser> getUserByIds(@RequestParam("ids") List<Long> ids);
+    List<WebUser> getUserByIds(@RequestParam("ids") Set<Long> ids);
 
     @PostMapping("/web/user/updateUserById")
     Boolean updateUserById(@RequestBody WebUser user);

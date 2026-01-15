@@ -131,11 +131,11 @@ public class WebCommentServiceImpl extends ServiceImpl<WebCommentMapper, WebComm
 
         if (CollUtil.isNotEmpty(levelTwoCommentList)) {
             // 评论发布用户的信息
-            List<Long> uids = levelTwoCommentList.stream().map(WebComment::getUid).toList();
+            Set<Long> uids = levelTwoCommentList.stream().map(WebComment::getUid).collect(Collectors.toSet());
             List<WebUser> users = userServiceFeign.getUserByIds(uids);
             Map<Long, WebUser> userMap = users.stream().collect(Collectors.toMap(WebUser::getId, user -> user));
             // 被评论用户的信息
-            List<Long> replyUids = levelTwoCommentList.stream().map(WebComment::getReplyUid).toList();
+            Set<Long> replyUids = levelTwoCommentList.stream().map(WebComment::getReplyUid).collect(Collectors.toSet());
             Map<Long, WebUser> replyUserMap = new HashMap<>(16);
             if (CollUtil.isNotEmpty(replyUids)) {
                 List<WebUser> replyUsers = userServiceFeign.getUserByIds(replyUids);
@@ -201,11 +201,11 @@ public class WebCommentServiceImpl extends ServiceImpl<WebCommentMapper, WebComm
         List<CommentVO> commentVOList = new ArrayList<>();
         if (CollUtil.isNotEmpty(commentList)) {
             // 评论用户的信息
-            List<Long> uids = commentList.stream().map(WebComment::getUid).toList();
+            Set<Long> uids = commentList.stream().map(WebComment::getUid).collect(Collectors.toSet());
             Map<Long, WebUser> userMap = userServiceFeign.getUserByIds(uids)
                     .stream().collect(Collectors.toMap(WebUser::getId, user -> user));
             // 评论所在笔记的信息
-            List<Long> nids = commentList.stream().map(WebComment::getNid).toList();
+            Set<Long> nids = commentList.stream().map(WebComment::getNid).collect(Collectors.toSet());
             Map<Long, WebNote> noteMap =
                     noteServiceFeign.getNoteByIds(nids).stream().collect(Collectors.toMap(WebNote::getId, note -> note));
             // 被回复的评论的内容
@@ -263,7 +263,7 @@ public class WebCommentServiceImpl extends ServiceImpl<WebCommentMapper, WebComm
         );
         List<WebComment> levelOneCommentList = levelOneCommentPage.getRecords();
         if (CollUtil.isNotEmpty(levelOneCommentList)) {
-            List<Long> levelOneUids = new ArrayList<>(levelOneCommentList.stream().map(WebComment::getUid).toList());
+            Set<Long> levelOneUids = levelOneCommentList.stream().map(WebComment::getUid).collect(Collectors.toSet());
             long levelOneTotal = levelOneCommentPage.getTotal();
             Long currentUid = UserHolder.getUserId();
             // 得到对应的二级评论
@@ -273,7 +273,7 @@ public class WebCommentServiceImpl extends ServiceImpl<WebCommentMapper, WebComm
                     .orderByDesc("like_count")
                     .orderByDesc("create_time")
             );
-            List<Long> levelTwoUids = levelTwoCommentList.stream().map(WebComment::getUid).toList();
+            Set<Long> levelTwoUids = levelTwoCommentList.stream().map(WebComment::getUid).collect(Collectors.toSet());
             levelOneUids.addAll(levelTwoUids);
 
             List<WebUser> users = userServiceFeign.getUserByIds(levelOneUids);
@@ -287,7 +287,7 @@ public class WebCommentServiceImpl extends ServiceImpl<WebCommentMapper, WebComm
             );
             List<Long> likeComments = likeOrCollections.stream().map(WebLikeOrFavorite::getLikeOrFavoriteId).toList();
 
-            List<Long> replyUids = levelTwoCommentList.stream().map(WebComment::getReplyUid).toList();
+            Set<Long> replyUids = levelTwoCommentList.stream().map(WebComment::getReplyUid).collect(Collectors.toSet());
             Map<Long, WebUser> replyUserMap = new HashMap<>(16);
             if (!replyUids.isEmpty()) {
                 List<WebUser> replyUsers = userServiceFeign.getUserByIds(replyUids);

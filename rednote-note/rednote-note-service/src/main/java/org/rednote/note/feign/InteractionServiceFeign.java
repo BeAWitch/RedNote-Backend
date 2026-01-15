@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
+import java.util.Set;
 
 @FeignClient("interaction-service")
 public interface InteractionServiceFeign {
@@ -44,10 +45,10 @@ public interface InteractionServiceFeign {
     Boolean deleteLikeOrFavoriteByObjId(@RequestParam("objId") Long objId);
 
     @PostMapping("/web/likeOrFavorite/deleteLikeOrFavoriteByObjIds")
-    Boolean deleteLikeOrFavoriteByObjIds(@RequestBody List<Long> objIds);
+    Boolean deleteLikeOrFavoriteByObjIds(@RequestBody Set<Long> objIds);
 
     @PostMapping("/web/comment/deleteCommentByIds")
-    Boolean deleteCommentByIds(@RequestBody List<Long> commentIds);
+    Boolean deleteCommentByIds(@RequestBody Set<Long> commentIds);
 
     @GetMapping("/web/comment/getCommentByNid")
     List<WebComment> getCommentByNid(@RequestParam("nid") Long nid);

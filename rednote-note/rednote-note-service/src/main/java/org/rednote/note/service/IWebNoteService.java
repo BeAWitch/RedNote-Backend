@@ -10,6 +10,7 @@ import org.rednote.search.api.vo.NoteSearchVO;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * 笔记管理
@@ -65,7 +66,7 @@ public interface IWebNoteService extends IService<WebNote> {
      *
      * @param noteIds 笔记 ID 集合
      */
-    List<WebNote> getByIdsOrderedByTime(List<Long> noteIds);
+    List<WebNote> getByIdsOrderedByTime(Set<Long> noteIds);
 
     Page<WebNote> selectNotePageWithCondition(Page<WebNote> page, SearchNoteDTO searchNoteDTO);
 

@@ -145,17 +145,17 @@ public class WebLikeOrFavoriteServiceImpl extends ServiceImpl<WebLikeOrFavoriteM
         // TODO 可以使用多线程优化
         // 获取详细数据
         // 得到所有用户
-        List<Long> uids = likeOrFavoriteList.stream().map(WebLikeOrFavorite::getUid).toList();
+        Set<Long> uids = likeOrFavoriteList.stream().map(WebLikeOrFavorite::getUid).collect(Collectors.toSet());
         Map<Long, WebUser> userMap = new HashMap<>(16);
         if (CollUtil.isNotEmpty(uids)) {
             userMap = userServiceFeign.getUserByIds(uids)
                     .stream().collect(Collectors.toMap(WebUser::getId, user -> user));
         }
         // 笔记
-        List<Long> nids = likeOrFavoriteList.stream()
+        Set<Long> nids = likeOrFavoriteList.stream()
                 .filter(e -> e.getType() == 1 || e.getType() == 3)
                 .map(WebLikeOrFavorite::getLikeOrFavoriteId)
-                .toList();
+                .collect(Collectors.toSet());
         Map<Long, WebNote> noteMap = new HashMap<>(16);
         if (CollUtil.isNotEmpty(nids)) {
             noteMap = noteServiceFeign.getNoteByIds(nids)
@@ -166,7 +166,7 @@ public class WebLikeOrFavoriteServiceImpl extends ServiceImpl<WebLikeOrFavoriteM
         Map<Long, CommentVO> commentVoMap = new HashMap<>(16);
         if (!cids.isEmpty()) {
             List<WebComment> commentList = commentMapper.selectBatchIds(cids);
-            List<Long> noteIds = commentList.stream().map(WebComment::getNid).toList();
+            Set<Long> noteIds = commentList.stream().map(WebComment::getNid).collect(Collectors.toSet());
             Map<Long, WebNote> noteMap1 = noteServiceFeign.getNoteByIds(noteIds).stream().collect(Collectors.toMap(WebNote::getId, note -> note));
 
             commentList.forEach((item -> {

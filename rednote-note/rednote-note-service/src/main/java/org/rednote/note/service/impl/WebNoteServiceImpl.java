@@ -181,7 +181,7 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
             // 删除点赞图片，评论，标签关系，收藏关系
             interactionServiceFeign.deleteLikeOrFavoriteByObjId(noteId);
             List<WebComment> commentList = interactionServiceFeign.getCommentByNid(noteId);
-            List<Long> cids = commentList.stream().map(WebComment::getId).collect(Collectors.toList());
+            Set<Long> cids = commentList.stream().map(WebComment::getId).collect(Collectors.toSet());
             if (CollUtil.isNotEmpty(cids)) {
                 interactionServiceFeign.deleteLikeOrFavoriteByObjIds(cids);
                 interactionServiceFeign.deleteCommentByIds(cids);
@@ -295,7 +295,7 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
      * @param noteIds 笔记 ID 集合
      */
     @Override
-    public List<WebNote> getByIdsOrderedByTime(List<Long> noteIds) {
+    public List<WebNote> getByIdsOrderedByTime(Set<Long> noteIds) {
         return lambdaQuery().in(WebNote::getId, noteIds).orderByDesc(WebNote::getCreateTime).list();
     }
 
@@ -446,18 +446,16 @@ public class WebNoteServiceImpl extends ServiceImpl<WebNoteMapper, WebNote> impl
         List<WebNote> likeOrFavoriteNoteList = this.listByIds(likeOrFavoriteIdList);
 
         Long currentUserId = UserHolder.getUserId();
-        // 是否点赞
-        List<Long> likedNoteIds = interactionServiceFeign.getLikeOrFavoriteByUidAndType(currentUserId, 1)
+        // 点赞的笔记 ID
+        Set<Long> likedNoteIds = interactionServiceFeign.getLikeOrFavoriteByUidAndType(currentUserId, 1)
                 .stream()
                 .map(WebLikeOrFavorite::getLikeOrFavoriteId)
-                .toList();
+                .collect(Collectors.toSet());
 
         // 笔记对应的用户
-        Map<Long, WebUser> userMap = likedNoteIds.stream()
-                .map(likedNoteId -> {
-                    Long uid = this.getById(likedNoteId).getUid();
-                    return userServiceFeign.getUserById(uid).getData();
-                })
+        Set<Long> noteUids = this.listByIds(likedNoteIds).stream().map(WebNote::getUid).collect(Collectors.toSet());
+        Map<Long, WebUser> userMap = userServiceFeign.getUserByIds(noteUids)
+                .stream()
                 .collect(Collectors.toMap(WebUser::getId, user -> user));
 
         // 填充 VO

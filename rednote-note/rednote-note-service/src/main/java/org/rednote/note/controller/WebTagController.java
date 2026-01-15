@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Set;
 
 @Tag(name = "标签管理", description = "标签管理相关接口")
 @RequestMapping("/web/tag")
@@ -57,7 +58,7 @@ public class WebTagController {
 
     @Operation(hidden = true)
     @GetMapping("getTagByIds")
-    public List<WebTag> getTagByIds(@RequestParam("tagIds") List<Long> tagIds) {
+    public List<WebTag> getTagByIds(@RequestParam("tagIds") Set<Long> tagIds) {
         return tagService.listByIds(tagIds);
     }
 

@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Set;
 
 @Tag(name = "用户管理", description = "用户管理相关接口")
 @RequestMapping("/web/user")
@@ -64,7 +65,7 @@ public class WebUserController {
 
     @Operation(hidden = true)
     @GetMapping("getUserByIds")
-    public List<WebUser> getUserByIds(@RequestParam("ids") List<Long> ids) {
+    public List<WebUser> getUserByIds(@RequestParam("ids") Set<Long> ids) {
         return userService.listByIds(ids);
     }
 

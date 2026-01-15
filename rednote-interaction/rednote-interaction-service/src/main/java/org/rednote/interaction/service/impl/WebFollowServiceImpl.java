@@ -30,6 +30,7 @@ import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -67,7 +68,7 @@ public class WebFollowServiceImpl extends ServiceImpl<WebFollowMapper, WebFollow
             return null;
         }
         // 解析数据
-        List<Long> nids = new ArrayList<>(typedTuples.size());
+        Set<Long> nids = new HashSet<>();
         long minTime = 0;
         int minCount = 1; // 重复的个数，下一次请求中的偏移量
         for (ZSetOperations.TypedTuple<String> tuple : typedTuples) {
@@ -185,7 +186,7 @@ public class WebFollowServiceImpl extends ServiceImpl<WebFollowMapper, WebFollow
         List<WebFollow> followList = followPage.getRecords();
         long total = followPage.getTotal();
 
-        List<Long> uids = followList.stream().map(WebFollow::getUid).toList();
+        Set<Long> uids = followList.stream().map(WebFollow::getUid).collect(Collectors.toSet());
         // 没有关注者
         if (CollUtil.isEmpty(uids)) {
             return result;

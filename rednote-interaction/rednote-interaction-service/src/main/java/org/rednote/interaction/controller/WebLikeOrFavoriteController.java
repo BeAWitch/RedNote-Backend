@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Set;
 
 @Tag(name = "点赞和收藏管理", description = "点赞和收藏相关接口")
 @RequestMapping("/web/likeOrFavorite")
@@ -77,7 +78,7 @@ public class WebLikeOrFavoriteController {
 
     @Operation(hidden = true)
     @PostMapping("deleteLikeOrFavoriteByObjIds")
-    public Boolean deleteLikeOrFavoriteByObjIds(@RequestBody List<Long> objIds) {
+    public Boolean deleteLikeOrFavoriteByObjIds(@RequestBody Set<Long> objIds) {
         return likeOrFavoriteService.remove(new LambdaQueryWrapper<>(WebLikeOrFavorite.class)
                 .in(WebLikeOrFavorite::getLikeOrFavoriteId, objIds));
     }

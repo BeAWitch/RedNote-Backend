@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Set;
 
 @Tag(name = "笔记管理", description = "笔记相关接口")
 @RequestMapping("/web/note")
@@ -93,13 +94,13 @@ public class WebNoteController {
 
     @Operation(hidden = true)
     @GetMapping("getByIds")
-    public List<WebNote> getByIds(@RequestParam("noteIds") List<Long> noteIds) {
+    public List<WebNote> getByIds(@RequestParam("noteIds") Set<Long> noteIds) {
         return noteService.listByIds(noteIds);
     }
 
     @Operation(hidden = true)
     @GetMapping("getByIdsOrderedByTime")
-    public List<WebNote> getByIdsOrderedByTime(@RequestParam("noteIds") List<Long> noteIds) {
+    public List<WebNote> getByIdsOrderedByTime(@RequestParam("noteIds") Set<Long> noteIds) {
         return noteService.getByIdsOrderedByTime(noteIds);
     }
 

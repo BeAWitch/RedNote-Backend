@@ -26,6 +26,8 @@ import org.rednote.user.api.entity.WebUser;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 // TODO
 //  Redis 缓存
@@ -213,9 +215,9 @@ public class WebSearchNoteServiceImpl implements IWebSearchNoteService {
         }
 
         // 提取标签 ID 列表
-        List<Long> tagIds = relations.stream()
+        Set<Long> tagIds = relations.stream()
                 .map(WebTagNoteRelation::getTid)
-                .toList();
+                .collect(Collectors.toSet());
 
         // 批量查询标签信息
         List<WebTag> tags = noteServiceFeign.getTagByIds(tagIds);

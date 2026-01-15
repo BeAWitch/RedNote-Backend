@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * 评论
@@ -80,7 +81,7 @@ public class WebCommentController {
 
     @Operation(hidden = true)
     @PostMapping("deleteCommentByIds")
-    public Boolean deleteCommentByIds(@RequestBody List<Long> commentIds) {
+    public Boolean deleteCommentByIds(@RequestBody Set<Long> commentIds) {
         return commentService.removeBatchByIds(commentIds);
     }
 

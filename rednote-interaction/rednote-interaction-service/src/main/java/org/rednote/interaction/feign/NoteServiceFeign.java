@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
+import java.util.Set;
 
 @FeignClient(name = "note-service")
 public interface NoteServiceFeign {
@@ -16,10 +17,10 @@ public interface NoteServiceFeign {
     WebNote getNoteById(@RequestParam("noteId") Long noteId);
 
     @GetMapping("/web/note/getByIds")
-    List<WebNote> getNoteByIds(@RequestParam("noteIds") List<Long> noteIds);
+    List<WebNote> getNoteByIds(@RequestParam("noteIds") Set<Long> noteIds);
 
     @GetMapping("/web/note/getByIdsOrderedByTime")
-    List<WebNote> getByIdsOrderedByTime(@RequestParam("noteIds") List<Long> noteIds);
+    List<WebNote> getByIdsOrderedByTime(@RequestParam("noteIds") Set<Long> noteIds);
 
     @PostMapping("/web/note/updateNote")
     Boolean updateNote(@RequestBody WebNote note);

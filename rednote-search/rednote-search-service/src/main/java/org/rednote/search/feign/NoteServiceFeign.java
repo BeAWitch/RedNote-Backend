@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
+import java.util.Set;
 
 @FeignClient(name = "note-service")
 public interface NoteServiceFeign {
@@ -21,10 +22,10 @@ public interface NoteServiceFeign {
     WebNote getNoteById(@RequestParam("noteId") Long noteId);
 
     @GetMapping("/web/note/getByIds")
-    List<WebNote> getNoteByIds(@RequestParam("noteIds") List<Long> noteIds);
+    List<WebNote> getNoteByIds(@RequestParam("noteIds") Set<Long> noteIds);
 
     @GetMapping("/web/tag/getTagByIds")
-    List<WebTag> getTagByIds(@RequestParam("tagIds") List<Long> tagIds);
+    List<WebTag> getTagByIds(@RequestParam("tagIds") Set<Long> tagIds);
 
     @GetMapping("/web/tag/getTagNoteRelationByNid")
     List<WebTagNoteRelation> getTagNoteRelationByNid(@RequestParam("nid") Long nid);

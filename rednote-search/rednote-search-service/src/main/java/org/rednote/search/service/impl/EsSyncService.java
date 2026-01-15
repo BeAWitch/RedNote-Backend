@@ -15,6 +15,7 @@ import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -137,7 +138,7 @@ public class EsSyncService implements IEsSyncService{
         
         for (List<Long> batch : batches) {
             try {
-                List<WebNote> webNotes = noteServiceFeign.getNoteByIds(batch);
+                List<WebNote> webNotes = noteServiceFeign.getNoteByIds(new HashSet<>(batch));
                 
                 List<EsNote> esNotes = webNotes.stream()
                     .filter(note -> note.getAuditStatus() == 1)
