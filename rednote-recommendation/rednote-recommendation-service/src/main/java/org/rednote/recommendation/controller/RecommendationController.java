@@ -30,6 +30,8 @@ public class RecommendationController {
     }
 
     private final RecommendScheduledTasks recommendScheduledTasks;
+
+    @Operation(summary = "预计算测试接口", description = "预计算测试接口")
     @GetMapping("preCalculate")
     public void preCalculate() {
         recommendScheduledTasks.preCalculate();

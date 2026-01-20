@@ -1,0 +1,18 @@
+server:
+  port: 8090
+  servlet:
+    context-path: /
+
+rednote:
+  doc:
+    group: 'AI 服务'
+    package: org.rednote.ai.controller
+
+spring:
+  ai:
+    zhipuai:
+      api-key: ZHIPUAI_API_KEY
+    chat:
+      options:
+        model: glm-4.7
+        temperature: 0.7

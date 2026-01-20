@@ -60,3 +60,7 @@ spring:
           uri: lb://recommendation-service
           predicates:
             - Path=/web/recommendation/**
+        - id: ai
+          uri: lb://ai-service
+          predicates:
+            - Path=/web/ai/**
