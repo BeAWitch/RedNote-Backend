@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: recommendation-service
+  cloud:
+    nacos:
+      server-addr: 192.168.56.2:8848 # nacos
+      config:
+        file-extension: yaml
+        shared-configs:
+          - data-id: jdbc.yaml
+          - data-id: log.yaml
+          - data-id: doc.yaml
+          - data-id: redis.yaml
+          - data-id: feign.yaml

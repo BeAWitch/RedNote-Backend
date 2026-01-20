@@ -19,20 +19,20 @@ import org.rednote.search.api.entity.EsNote;
 import org.rednote.search.api.vo.NoteSearchVO;
 import org.rednote.search.feign.InteractionServiceFeign;
 import org.rednote.search.feign.NoteServiceFeign;
+import org.rednote.search.feign.RecommendationServiceFeign;
 import org.rednote.search.feign.UserServiceFeign;
 import org.rednote.search.service.IEsSearchService;
 import org.rednote.search.service.IWebSearchNoteService;
 import org.rednote.user.api.entity.WebUser;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 // TODO
 //  Redis 缓存
-//  智能推荐
-//  es
 
 @Service
 @RequiredArgsConstructor
@@ -43,6 +43,7 @@ public class WebSearchNoteServiceImpl implements IWebSearchNoteService {
     private final NoteServiceFeign noteServiceFeign;
     private final InteractionServiceFeign interactionServiceFeign;
     private final IEsSearchService esSearchService;
+    private final RecommendationServiceFeign recommendationServiceFeign;
 
     /**
      * 搜索对应的笔记
@@ -61,7 +62,7 @@ public class WebSearchNoteServiceImpl implements IWebSearchNoteService {
             // 转换为 VO 并填充额外信息
             resultIPage = esNotePage.convert(this::convertToNoteSearchVO);
         } catch (Exception e) {
-            log.error("ES 搜索异常，降级为数据库搜索", e);
+            log.error("ES 搜索异常，降级为数据库搜索。", e);
             // 查询
             Page<WebNote> notePage = noteServiceFeign.selectNotePageWithCondition(currentPage, pageSize, searchNoteDTO);
             // 转换为 VO 并填充额外信息
@@ -91,12 +92,24 @@ public class WebSearchNoteServiceImpl implements IWebSearchNoteService {
      */
     @Override
     public Page<NoteSearchVO> getRecommendNote(long currentPage, long pageSize) {
-        // 构建查询条件
-        SearchNoteDTO searchNoteDTO = new SearchNoteDTO();
-        // 排序条件
-        searchNoteDTO.setType(1);
+        try {
+            Long uid = UserHolder.getUserId();
+            HashSet<Long> uids = new HashSet<>(recommendationServiceFeign.recommendNotes(uid, (int) pageSize));
+            // 失败时返回热门笔记
+            if (uids.isEmpty()) {
+                return getHotNote(currentPage, pageSize);
+            }
+            List<NoteSearchVO> noteSearchVOList =
+                    noteServiceFeign.getNoteByIds(uids).stream().map(this::convertToNoteSearchVO).toList();
+            return new Page<NoteSearchVO>()
+                    .setRecords(noteSearchVOList)
+                    .setTotal(noteSearchVOList.size());
+        } catch (Exception e) {
+            log.error("推荐笔记异常，推荐热门笔记。", e);
+        }
 
-        return getNoteByDTO(currentPage, pageSize, searchNoteDTO);
+        // 失败时返回热门笔记
+        return getHotNote(currentPage, pageSize);
     }
 
     /**
@@ -118,7 +131,12 @@ public class WebSearchNoteServiceImpl implements IWebSearchNoteService {
      */
     @Override
     public Page<NoteSearchVO> getHotNote(long currentPage, long pageSize) {
-        return this.getRecommendNote(currentPage, pageSize);
+        // 构建查询条件
+        SearchNoteDTO searchNoteDTO = new SearchNoteDTO();
+        // 排序条件
+        searchNoteDTO.setType(1);
+
+        return getNoteByDTO(currentPage, pageSize, searchNoteDTO);
     }
 
     /**

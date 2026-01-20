@@ -1,6 +1,7 @@
 package org.rednote.common.constant;
 
 import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 
 public class RedisConstants {
     // 登录
@@ -29,4 +30,8 @@ public class RedisConstants {
     public static final String UNCHECKED_MESSAGE_KEY = "unchecked:message:";
     public static final String UNCHECKED_TREND_KEY = "unchecked:trend:";
 
+    // 推荐
+    public static final String ITEM_CF_KEY = "item:cf:";
+    public static final Long ITEM_CF_TTL = 3L;
+    public static final TimeUnit ITEM_CF_TTL_UNIT = TimeUnit.DAYS;
 }

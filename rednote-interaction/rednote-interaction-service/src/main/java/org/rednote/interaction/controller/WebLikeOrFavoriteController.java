@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -109,6 +110,14 @@ public class WebLikeOrFavoriteController {
         return likeOrFavoriteService.lambdaQuery()
                 .eq(WebLikeOrFavorite::getUid, uid)
                 .eq(WebLikeOrFavorite::getType, type)
+                .list();
+    }
+
+    @Operation(hidden = true)
+    @GetMapping("getLikeOrFavoriteByTime")
+    List<WebLikeOrFavorite> getLikeOrFavoriteByTime (@RequestParam("time") LocalDateTime time) {
+        return likeOrFavoriteService.lambdaQuery()
+                .ge(WebLikeOrFavorite::getCreateTime, time)
                 .list();
     }
 }

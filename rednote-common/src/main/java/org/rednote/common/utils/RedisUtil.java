@@ -2,8 +2,10 @@ package org.rednote.common.utils;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ZSetOperations;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -100,6 +102,18 @@ public class RedisUtil {
      */
     public double hIncrement(String key, String hashKey, double delta) {
         return redisTemplate.opsForHash().increment(key, hashKey, delta);
+    }
+
+    // ===================
+    // ZSet 操作
+    // ===================
+
+    public void zAdd(String key, Object value, double score) {
+        redisTemplate.opsForZSet().add(key, value, score);
+    }
+
+    public Set<ZSetOperations.TypedTuple<Object>> zRangeWithScores(String key, int i, int i1) {
+        return redisTemplate.opsForZSet().rangeWithScores(key, i, i1);
     }
 }
 

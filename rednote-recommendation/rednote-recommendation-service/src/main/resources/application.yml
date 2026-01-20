@@ -1,0 +1,11 @@
+server:
+  port: 8089
+  servlet:
+    context-path: /
+
+rednote:
+  mp:
+    package: org.rednote.recommendation.api.entity
+  doc:
+    group: '笔记推荐服务'
+    package: org.rednote.recommendation.controller

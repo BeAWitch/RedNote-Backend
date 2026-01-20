@@ -89,7 +89,7 @@ CREATE TABLE `web_like_or_favorite`
     `uid`                 bigint(20) UNSIGNED NOT NULL COMMENT '点赞的用户',
     `notify_uid`          bigint(20) UNSIGNED NOT NULL COMMENT '需要通知的用户',
     `like_or_favorite_id` bigint(20) UNSIGNED NOT NULL COMMENT '点赞或收藏的对象 id(可能是图片或者评论)',
-    `type`                int                 NOT NULL COMMENT '点赞收藏类型（1：点赞笔记，2：点赞评论，3：收藏笔记，4：收藏专辑）',
+    `type`                int                 NOT NULL COMMENT '点赞收藏类型（1：点赞笔记，2：点赞评论，3：收藏笔记）',
     `create_time`         datetime            NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time`         datetime            NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`)
@@ -299,3 +299,60 @@ CREATE TABLE `web_user_note_relation`
   AUTO_INCREMENT = 327
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_0900_ai_ci COMMENT ='用户-笔记关系表';
+
+-- ----------------------------
+-- Table structure for web_user_operation
+-- ----------------------------
+DROP TABLE IF EXISTS `web_user_operation`;
+CREATE TABLE `web_user_operation`
+(
+    `id`          bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
+    `nid`         bigint(20) UNSIGNED NOT NULL COMMENT '笔记id',
+    `uid`         bigint(20) UNSIGNED NOT NULL COMMENT '用户id',
+    `operation`   int UNSIGNED        NOT NULL COMMENT '用户操作（0：点赞，1：收藏，2：评论）',
+    `create_time` datetime            NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    PRIMARY KEY (`id`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_0900_ai_ci COMMENT ='用户操作表';
+
+-- 存储过程生成测试数据
+DELIMITER $$
+
+CREATE PROCEDURE GenerateUserOperationTestData()
+BEGIN
+    DECLARE i INT DEFAULT 0;
+    DECLARE max_users INT DEFAULT 50;
+    DECLARE max_notes INT DEFAULT 100;
+    DECLARE user_id BIGINT;
+    DECLARE note_id BIGINT;
+    DECLARE operation_type INT;
+
+    -- 清空表
+    -- DELETE FROM `web_user_operation`;
+
+    -- 生成 100 条测试数据
+    WHILE i < 100 DO
+            -- 随机生成用户 ID (101-150)
+            SET user_id = 101 + FLOOR(RAND() * max_users);
+
+            -- 随机生成笔记 ID (1001-1100)
+            SET note_id = 1001 + FLOOR(RAND() * max_notes);
+
+            -- 随机生成操作类型 (0,1,2)
+            SET operation_type = FLOOR(RAND() * 3);
+
+            -- 插入数据
+            INSERT INTO `web_user_operation` (`nid`, `uid`, `operation`)
+            VALUES (note_id, user_id, operation_type);
+
+            SET i = i + 1;
+        END WHILE;
+
+    SELECT '100 条测试数据生成完成' AS result;
+END$$
+
+DELIMITER ;
+
+-- 执行存储过程
+CALL GenerateUserOperationTestData();

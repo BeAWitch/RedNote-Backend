@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -90,6 +91,14 @@ public class WebCommentController {
     public List<WebComment> getCommentByNid(@RequestParam("nid") Long nid) {
         return commentService.lambdaQuery()
                 .eq(WebComment::getNid, nid)
+                .list();
+    }
+
+    @Operation(hidden = true)
+    @GetMapping("getCommentByTime")
+    public List<WebComment> getCommentByTime(@RequestParam("time")LocalDateTime time) {
+        return commentService.lambdaQuery()
+                .ge(WebComment::getCreateTime, time)
                 .list();
     }
 }
