@@ -7,6 +7,7 @@ ai:
   provider:
     text: zhipu
     note-optimize: openai
+    translate: openai
 
 rednote:
   doc:
