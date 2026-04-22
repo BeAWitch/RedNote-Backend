@@ -6,7 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.rednote.ai.api.constant.AiPromptConstant;
 import org.rednote.ai.api.dto.AIRequestDTO;
 import org.rednote.ai.api.vo.AIResponseVO;
-import org.rednote.ai.api.service.IAiTextGenerationService;
+import org.rednote.ai.service.IAiTextGenerationService;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;

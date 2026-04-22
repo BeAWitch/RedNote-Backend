@@ -3,7 +3,7 @@ package org.rednote.ai.router;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.rednote.ai.api.dto.AIRequestDTO;
-import org.rednote.ai.api.service.IAiTextGenerationService;
+import org.rednote.ai.service.IAiTextGenerationService;
 import org.rednote.ai.api.vo.AIResponseVO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;

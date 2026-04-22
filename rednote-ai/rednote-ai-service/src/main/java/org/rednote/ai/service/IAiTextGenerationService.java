@@ -1,4 +1,4 @@
-package org.rednote.ai.api.service;
+package org.rednote.ai.service;
 
 import org.rednote.ai.api.dto.AIRequestDTO;
 import org.rednote.ai.api.vo.AIResponseVO;
