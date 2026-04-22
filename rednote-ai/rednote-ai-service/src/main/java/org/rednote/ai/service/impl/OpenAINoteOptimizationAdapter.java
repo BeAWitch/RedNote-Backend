@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.rednote.ai.api.constant.AiPromptConstant;
 import org.rednote.ai.api.dto.AINoteOptimizeRequestDTO;
 import org.rednote.ai.api.service.IAiNoteOptimizationService;
 import org.rednote.ai.api.vo.AIResponseVO;
@@ -17,11 +18,10 @@ import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.content.Media;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MimeTypeUtils;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -32,8 +32,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class OpenAINoteOptimizationAdapter implements IAiNoteOptimizationService {
 
-    // 注入 OpenAiChatModel，它由 spring-ai-openai-spring-boot-starter 自动配置提供
     private final OpenAiChatModel chatModel;
+
+    @Value("${spring.ai.openai.chat.options.model:gpt-5.2}")
+    private String model;
+
+    @Value("${spring.ai.openai.chat.options.temperature:0.7}")
+    private Double temperature;
 
     @Override
     public String provider() {
@@ -49,10 +54,10 @@ public class OpenAINoteOptimizationAdapter implements IAiNoteOptimizationService
             validateRequest(request);
             List<Message> messages = buildMessages(request);
             
-            // 指定使用 gpt-5.2 模型
+            // 指定使用配置的模型
             OpenAiChatOptions options = OpenAiChatOptions.builder()
-                    .model("gpt-5.2")
-                    .temperature(0.7)
+                    .model(model)
+                    .temperature(temperature)
                     .build();
 
             Prompt prompt = new Prompt(messages, options);
@@ -87,13 +92,7 @@ public class OpenAINoteOptimizationAdapter implements IAiNoteOptimizationService
         List<Message> messages = new ArrayList<>();
 
         // 构建强大的系统提示词
-        String systemPrompt = "你是一个专业的小红书爆款文案优化师。请根据用户提供的图片（如有）、原标题、正文和标签，输出一篇排版精美、网感强、吸引眼球的笔记文案。" +
-                "要求：\n" +
-                "1. 保留用户的核心意图和信息。\n" +
-                "2. 适当增加 Emoji 表情，增强视觉吸引力。\n" +
-                "3. 优化段落结构，使用空行分隔，保持呼吸感。\n" +
-                "4. 提炼出更具吸引力的标题（可以提供 2-3 个供选择）。\n" +
-                "5. 补充更多相关的热门标签（格式如 #标签）。";
+        String systemPrompt = AiPromptConstant.NOTE_OPTIMIZE_SYSTEM_PROMPT;
         messages.add(new SystemMessage(systemPrompt));
 
         // 构建用户消息文本内容

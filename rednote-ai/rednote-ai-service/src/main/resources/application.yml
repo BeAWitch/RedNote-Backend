@@ -20,6 +20,10 @@ spring:
     openai:
       api-key: OPENAI_API_KEY
       base-url: OPENAI_BASE_URL
+      chat:
+        options:
+          model: gpt-5.2
+          temperature: 0.7
     chat:
       options:
         model: glm-4.7
