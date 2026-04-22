@@ -3,6 +3,11 @@ server:
   servlet:
     context-path: /
 
+ai:
+  provider:
+    text: zhipu
+    note-optimize: openai
+
 rednote:
   doc:
     group: 'AI 服务'
@@ -12,6 +17,9 @@ spring:
   ai:
     zhipuai:
       api-key: ZHIPUAI_API_KEY
+    openai:
+      api-key: OPENAI_API_KEY
+      base-url: OPENAI_BASE_URL
     chat:
       options:
         model: glm-4.7

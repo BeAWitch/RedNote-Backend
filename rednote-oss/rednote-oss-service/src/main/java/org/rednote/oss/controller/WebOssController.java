@@ -1,6 +1,5 @@
 package org.rednote.oss.controller;
 
-import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.rednote.oss.service.IWebOssService;
@@ -22,35 +21,26 @@ public class WebOssController {
 
     private final IWebOssService ossService;
 
-    /**
-     * 以下用于远程调用
-     */
-
-    @Operation(hidden = true)
     @PostMapping(value = "uploadFile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     String uploadFile(@RequestPart("file") MultipartFile file) {
         return ossService.save(file);
     }
 
-    @Operation(hidden = true)
     @PostMapping("uploadBase64")
     String uploadBase64(@RequestBody String base64String) {
         return ossService.save(base64String);
     }
 
-    @Operation(hidden = true)
     @PostMapping(value = "uploadBatchFiles", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     List<String> uploadBatchFiles(@RequestPart("files") MultipartFile[] files) {
         return ossService.saveBatch(files);
     }
 
-    @Operation(hidden = true)
     @PostMapping("deleteFile")
     void deleteFile(@RequestBody String path) {
         ossService.delete(path);
     }
 
-    @Operation(hidden = true)
     @PostMapping("deleteBatchFiles")
     void deleteBatchFiles(@RequestBody List<String> paths) {
         ossService.batchDelete(paths);
