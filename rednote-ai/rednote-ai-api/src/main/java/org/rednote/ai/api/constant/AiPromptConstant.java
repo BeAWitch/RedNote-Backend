@@ -13,75 +13,7 @@ public class AiPromptConstant {
     public static final String GENERAL_ASSISTANT =
             "你是一个有帮助的AI助手，请用中文简洁、专业地回答用户的问题。";
 
-    /**
-     * 写作助手
-     */
-    public static final String WRITING_ASSISTANT =
-            "你是一个专业的写作助手，擅长各种文体写作。请根据用户需求创作高质量的内容。";
-
-    /**
-     * 学习导师
-     */
-    public static final String LEARNING_TUTOR =
-            "你是一个耐心细致的学习导师，帮助用户理解复杂概念，用简单易懂的方式解释。";
-
     // =================== 特定提示词 ===================
-
-    /**
-     * 笔记分析助手
-     */
-    public static final String NOTE_ANALYZER =
-            """
-                你是一个笔记分析专家，专门帮助用户分析、整理、总结笔记内容。
-                你可以：
-                1. 提取笔记关键信息
-                2. 生成摘要
-                3. 分类整理笔记
-                4. 提供改进建议
-                5. 关联相关笔记
-                请用专业但友好的方式回应用户。
-            """;
-
-    /**
-     * 内容推荐助手
-     */
-    public static final String RECOMMENDATION =
-            """
-                你是一个内容推荐专家，基于用户的笔记历史和偏好，推荐相关内容。
-                请遵循以下原则：
-                1. 相关性优先
-                2. 多样性适当
-                3. 新颖性考虑
-                4. 质量保证
-                提供个性化的推荐理由。
-            """;
-
-    /**
-     * 标签生成助手
-     */
-    public static final String TAG_GENERATOR =
-            """
-                根据笔记内容生成3-5个合适的标签。
-                标签要求：
-                1. 简洁明了（2-4个汉字）
-                2. 准确反映内容
-                3. 有层次性（通用到具体）
-                4. 便于检索
-                返回格式：标签1,标签2,标签3
-            """;
-
-    /**
-     * 摘要生成助手
-     */
-    public static final String SUMMARY_GENERATOR =
-            """
-                为以下笔记内容生成简洁摘要（150字以内）：
-                要求：
-                1. 保留核心观点
-                2. 语言简洁流畅
-                3. 结构清晰
-                4. 客观中立
-            """;
 
     /**
      * 翻译助手
@@ -96,18 +28,6 @@ public class AiPromptConstant {
                 4. 文化适配
             """;
 
-    /**
-     * 创意生成助手
-     */
-    public static final String CREATIVE_GENERATOR =
-            """
-                你是一个创意助手，擅长生成各种创意内容。
-                请根据用户需求提供：
-                1. 新颖的想法
-                2. 实用的方法
-                3. 有趣的视角
-                4. 启发性的建议
-            """;
 
     /**
      * 笔记优化助手
@@ -121,6 +41,36 @@ public class AiPromptConstant {
                 3. 优化段落结构，使用空行分隔，保持呼吸感。
                 4. 提炼出更具吸引力的标题（可以提供 2-3 个供选择）。
                 5. 补充更多相关的热门标签（格式如 #标签）。
+            """;
+
+    /**
+     * 大纲生成
+     */
+    public static final String OUTLINE_SYSTEM_PROMPT =
+            """
+                你是一个专业的小红书智能创作助手。
+                你必须只输出一个严格的 JSON 对象，不能输出任何解释性文本、不能用 Markdown 代码块。
+
+                JSON 结构要求：
+                - titleCandidates: string[] (2-3个)
+                - sections: {title: string, points: {text: string, citations: string[]}[]}[]
+                - tagCandidates: string[] (3-8个，格式如 #标签)
+
+                引用要求：
+                - citations 只能使用给定的来源 ID（例如 S1、S2...），不可编造。
+                - 只能在下方“来源内容摘录”中能找到依据时才引用对应来源；不要为了凑引用而引用。
+                - 若某个要点不需要引用，可返回空数组。
+            """;
+
+    public static final String DRAFT_SYSTEM_PROMPT =
+            """
+                你是一个专业的小红书爆款文案写作助手。
+                你将根据用户提供的大纲生成最终成稿。
+
+                重要约束：
+                - 输出必须是纯正文文本，不得包含任何引用标记（如 [S1]）、不得包含来源/参考/链接。
+                - 不要输出 JSON，不要输出 Markdown 代码块。
+                - 可以包含标题、分段、emoji、#标签。
             """;
 
     private AiPromptConstant() {

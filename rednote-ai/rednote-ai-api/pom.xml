@@ -22,6 +22,12 @@
             <artifactId>rednote-common</artifactId>
             <version>1.0.0</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.rednote</groupId>
+            <artifactId>rednote-note-api</artifactId>
+            <version>1.0.0</version>
+        </dependency>
     </dependencies>
 
 </project>

@@ -9,3 +9,7 @@ spring:
         shared-configs:
           - data-id: log.yaml
           - data-id: doc.yaml
+          - data-id: elasticsearch.yaml
+          - data-id: redis.yaml
+          - data-id: rabbitmq.yaml
+          - data-id: feign.yaml

@@ -1,10 +1,11 @@
 package org.rednote.ai;
 
-import org.rednote.common.config.FeignAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 
-@SpringBootApplication(exclude = { DataSourceAutoConfiguration.class, FeignAutoConfiguration.class })
+@EnableFeignClients
+@SpringBootApplication(exclude = { DataSourceAutoConfiguration.class })
 public class AIServiceApplication {
     public static void main(String[] args) {
         org.springframework.boot.SpringApplication.run(AIServiceApplication.class, args);
