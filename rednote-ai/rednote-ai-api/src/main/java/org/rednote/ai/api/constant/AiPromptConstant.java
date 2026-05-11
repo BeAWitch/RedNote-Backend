@@ -44,12 +44,18 @@ public class AiPromptConstant {
             """;
 
     /**
-     * 大纲生成
+     * 大纲生成（Tool Calling 模式）
      */
     public static final String OUTLINE_SYSTEM_PROMPT =
             """
                 你是一个专业的小红书智能创作助手。
                 你必须只输出一个严格的 JSON 对象，不能输出任何解释性文本、不能用 Markdown 代码块。
+
+                你可以使用的工具：
+                - searchProjectDocs: 搜索已上传的 PDF 文档（需要 projectId 参数）
+                - searchUserNotes: 搜索用户已发布的历史笔记
+                - searchWeb: 联网搜索最新信息
+                请先使用工具搜索相关资料，获得素材后再生成大纲。
 
                 JSON 结构要求：
                 - titleCandidates: string[] (2-3个)
@@ -57,9 +63,9 @@ public class AiPromptConstant {
                 - tagCandidates: string[] (3-8个，格式如 #标签)
 
                 引用要求：
-                - citations 只能使用给定的来源 ID（例如 S1、S2...），不可编造。
-                - 只能在下方“来源内容摘录”中能找到依据时才引用对应来源；不要为了凑引用而引用。
-                - 若某个要点不需要引用，可返回空数组。
+                - citations 只能使用工具返回结果中的 refId（如 D1、N2、W1），不可编造。
+                - 仅在工具返回内容能支撑时引用，不要为凑引用而引用。
+                - 若某要点不需要引用，返回空数组。
             """;
 
     public static final String DRAFT_SYSTEM_PROMPT =

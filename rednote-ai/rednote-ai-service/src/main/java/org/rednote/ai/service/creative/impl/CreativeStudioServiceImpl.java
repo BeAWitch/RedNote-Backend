@@ -3,13 +3,9 @@ package org.rednote.ai.service.creative.impl;
 import ai.z.openapi.ZhipuAiClient;
 import ai.z.openapi.service.embedding.EmbeddingCreateParams;
 import ai.z.openapi.service.embedding.EmbeddingResponse;
-import ai.z.openapi.service.tools.SearchChatMessage;
-import ai.z.openapi.service.tools.WebSearchApiResponse;
-import ai.z.openapi.service.tools.WebSearchParamsRequest;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
-import co.elastic.clients.json.JsonData;
 import com.alibaba.fastjson2.JSON;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,22 +21,19 @@ import org.rednote.ai.api.vo.CreativeDraftVO;
 import org.rednote.ai.api.vo.CreativeOutlineVO;
 import org.rednote.ai.api.vo.CreativeProjectDocsUpsertVO;
 import org.rednote.ai.api.vo.CreativeSourceVO;
-import org.rednote.ai.entity.EsAiUserNoteVector;
 import org.rednote.ai.entity.EsCreativeProjectDocChunk;
 import org.rednote.ai.repository.EsCreativeProjectDocChunkRepository;
 import org.rednote.ai.service.creative.CreativeStudioService;
+import org.rednote.ai.tool.CreativeTools;
 import org.rednote.common.utils.UserHolder;
+import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.zhipuai.ZhiPuAiChatModel;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.elasticsearch.client.elc.NativeQuery;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
-import org.springframework.data.elasticsearch.core.SearchHit;
-import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
@@ -72,20 +65,15 @@ public class CreativeStudioServiceImpl implements CreativeStudioService {
     private static final int PDF_MAX_PAGES = 50;
 
     private static final int DOC_CHUNK_CHAR_LIMIT = 1100;
-    private static final int DOC_TOPK_CHUNKS = 12;
-    private static final int NOTE_TOPK = 6;
-    private static final int WEB_TOPK = 6;
 
-    private static final int EVIDENCE_LINE_MAX_CHARS = 240;
-    private static final int EVIDENCE_LINES_PER_SOURCE = 2;
-
-    private static final Pattern CITATION_MARK_PATTERN = Pattern.compile("\\[\\s*S\\d+\\s*]");
+    private static final Pattern CITATION_MARK_PATTERN = Pattern.compile("\\[\\s*[SNDW]\\d+\\s*]");
     private static final Pattern REF_LINE_PATTERN = Pattern.compile("(?im)^\\s*(参考|引用|来源)\\s*[:：].*$");
 
     private final StringRedisTemplate stringRedisTemplate;
     private final ElasticsearchOperations elasticsearchOperations;
     private final EsCreativeProjectDocChunkRepository projectDocChunkRepository;
     private final ZhiPuAiChatModel zhiPuAiChatModel;
+    private final CreativeTools creativeTools;
     private final RestTemplate restTemplate = new RestTemplate();
 
     @Value("${spring.ai.zhipuai.api-key:}")
@@ -93,12 +81,6 @@ public class CreativeStudioServiceImpl implements CreativeStudioService {
 
     @Value("${ai.creative.es.index.project-doc:ai_project_doc_chunk}")
     private String projectDocIndex;
-
-    @Value("${ai.creative.es.index.user-note:ai_user_note_vector}")
-    private String userNoteIndex;
-
-    @Value("${ai.creative.web.enabled:false}")
-    private boolean webSearchEnabled;
 
     @Override
     public CreativeProjectCreateResponseDTO createProject() {
@@ -117,6 +99,7 @@ public class CreativeStudioServiceImpl implements CreativeStudioService {
 
     @Override
     public CreativeProjectDocsUpsertVO upsertDocs(String projectId, CreativeProjectDocsUpsertRequestDTO request) {
+        UserHolder.getUserId();
         if (StrUtil.isBlank(projectId)) {
             throw new IllegalArgumentException("projectId 不能为空");
         }
@@ -176,68 +159,73 @@ public class CreativeStudioServiceImpl implements CreativeStudioService {
         Long userId = UserHolder.getUserId();
         validateOutlineRequest(request);
 
-        // 检索候选
-        float[] q = embedAll(List.of(request.getRequirement())).get(0);
-        List<Float> qv = toFloatList(q);
-
-        List<SourceWithEvidence> candidates = new ArrayList<>();
-        candidates.addAll(retrieveDocSourcesFromEs(request.getProjectId(), qv));
-        candidates.addAll(retrieveNoteSourcesFromEs(userId, qv));
-        if (webSearchEnabled) {
-            candidates.addAll(retrieveWebSources(request.getRequirement()));
-        }
-
-        // dedupe and cap to MAX_SOURCES, then assign S1..Sn
-        Map<String, SourceWithEvidence> dedup = new LinkedHashMap<>();
-        for (SourceWithEvidence c : candidates) {
-            if (c == null || c.source == null || StrUtil.isBlank(c.dedupKey)) {
-                continue;
-            }
-            dedup.putIfAbsent(c.dedupKey, c);
-            if (dedup.size() >= MAX_SOURCES) {
-                break;
-            }
-        }
-
-        List<SourceWithEvidence> selected = dedup.values().stream().limit(MAX_SOURCES).toList();
-        for (int i = 0; i < selected.size(); i++) {
-            selected.get(i).source.setId("S" + (i + 1));
-        }
-        List<CreativeSourceVO> sources = selected.stream().map(s -> s.source).toList();
-
         String outlineId = "o_" + IdUtil.fastSimpleUUID();
-
-        String system = AiPromptConstant.OUTLINE_SYSTEM_PROMPT;
-        String userPrompt = outlineUserPrompt(request, selected);
-        Prompt prompt = new Prompt(List.of(new SystemMessage(system), new UserMessage(userPrompt)));
-        ChatResponse response = zhiPuAiChatModel.call(prompt);
-        String content = Optional.ofNullable(response.getResult()).map(r -> r.getOutput().getText()).orElse("{}");
-
-        CreativeOutlineVO vo = new CreativeOutlineVO();
-        vo.setOutlineId(outlineId);
-        vo.setSources(sources);
+        creativeTools.beginSession(request.getProjectId());
         try {
-            String cleanContent = cleanJsonString(content);
-            CreativeOutlineVO.Outline outline = JSON.parseObject(cleanContent, CreativeOutlineVO.Outline.class);
-            vo.setOutline(outline);
-            stringRedisTemplate.opsForValue().set(redisKeyOutline(outlineId), cleanContent);
-            stringRedisTemplate.opsForValue().set(redisKeyOutlineSources(outlineId), JSON.toJSONString(sources));
-        } catch (Exception e) {
-            log.warn("大纲 JSON 解析失败，返回原始文本。userId={}, projectId={}, outlineId={}", userId, request.getProjectId(), outlineId, e);
-            // fallback: put raw text into a single section
-            CreativeOutlineVO.Outline outline = new CreativeOutlineVO.Outline();
-            CreativeOutlineVO.Section section = new CreativeOutlineVO.Section();
-            section.setTitle("大纲");
-            CreativeOutlineVO.Point p = new CreativeOutlineVO.Point();
-            p.setText(content);
-            p.setCitations(List.of());
-            section.setPoints(List.of(p));
-            outline.setSections(List.of(section));
-            vo.setOutline(outline);
-            stringRedisTemplate.opsForValue().set(redisKeyOutline(outlineId), JSON.toJSONString(outline));
-            stringRedisTemplate.opsForValue().set(redisKeyOutlineSources(outlineId), JSON.toJSONString(sources));
+            ChatClient chatClient = ChatClient.builder(zhiPuAiChatModel)
+                    .defaultTools(creativeTools)
+                    .build();
+
+            String system = AiPromptConstant.OUTLINE_SYSTEM_PROMPT;
+            String user = outlineUserRequirement(request);
+            String content = chatClient.prompt()
+                    .system(system)
+                    .user(user)
+                    .call()
+                    .content();
+            if (StrUtil.isBlank(content)) {
+                content = "{}";
+            }
+
+            LinkedHashMap<String, CreativeSourceVO> toolSources = creativeTools.endSession();
+            // Assign S1..Sn in insertion order
+            List<CreativeSourceVO> sources = new ArrayList<>(toolSources.values());
+            Map<String, String> refToSid = new LinkedHashMap<>();
+            for (int i = 0; i < sources.size() && i < MAX_SOURCES; i++) {
+                String sid = "S" + (i + 1);
+                CreativeSourceVO sv = sources.get(i);
+                sv.setId(sid);
+                // 从 toolSources 反查 refId 建立映射
+                String refId = null;
+                for (var entry : toolSources.entrySet()) {
+                    if (entry.getValue() == sv) {
+                        refId = entry.getKey();
+                        break;
+                    }
+                }
+                if (refId != null) {
+                    refToSid.put(refId, sid);
+                }
+            }
+
+            CreativeOutlineVO vo = new CreativeOutlineVO();
+            vo.setOutlineId(outlineId);
+            vo.setSources(sources);
+            try {
+                String cleanContent = cleanJsonString(content);
+                CreativeOutlineVO.Outline outline = JSON.parseObject(cleanContent, CreativeOutlineVO.Outline.class);
+                remapCitations(outline, refToSid);
+                vo.setOutline(outline);
+                stringRedisTemplate.opsForValue().set(redisKeyOutline(outlineId), JSON.toJSONString(outline));
+                stringRedisTemplate.opsForValue().set(redisKeyOutlineSources(outlineId), JSON.toJSONString(sources));
+            } catch (Exception e) {
+                log.warn("大纲 JSON 解析失败，返回原始文本。userId={}, projectId={}, outlineId={}", userId, request.getProjectId(), outlineId, e);
+                CreativeOutlineVO.Outline outline = new CreativeOutlineVO.Outline();
+                CreativeOutlineVO.Section section = new CreativeOutlineVO.Section();
+                section.setTitle("大纲");
+                CreativeOutlineVO.Point p = new CreativeOutlineVO.Point();
+                p.setText(content);
+                p.setCitations(List.of());
+                section.setPoints(List.of(p));
+                outline.setSections(List.of(section));
+                vo.setOutline(outline);
+                stringRedisTemplate.opsForValue().set(redisKeyOutline(outlineId), JSON.toJSONString(outline));
+                stringRedisTemplate.opsForValue().set(redisKeyOutlineSources(outlineId), JSON.toJSONString(sources));
+            }
+            return vo;
+        } finally {
+            creativeTools.clearSession();
         }
-        return vo;
     }
 
     @Override
@@ -265,6 +253,7 @@ public class CreativeStudioServiceImpl implements CreativeStudioService {
 
     @Override
     public void cleanup(String projectId) {
+        UserHolder.getUserId();
         if (StrUtil.isBlank(projectId)) {
             return;
         }
@@ -450,151 +439,6 @@ public class CreativeStudioServiceImpl implements CreativeStudioService {
         return vectors;
     }
 
-    private static final class SourceWithEvidence {
-        private final CreativeSourceVO source;
-        private final List<String> evidence;
-        private final String dedupKey;
-
-        private SourceWithEvidence(CreativeSourceVO source, List<String> evidence, String dedupKey) {
-            this.source = source;
-            this.evidence = evidence;
-            this.dedupKey = dedupKey;
-        }
-    }
-
-    private List<Float> toFloatList(float[] vector) {
-        List<Float> qv = new ArrayList<>(vector.length);
-        for (float v : vector) {
-            qv.add(v);
-        }
-        return qv;
-    }
-
-    private String normalizeEvidence(String text) {
-        if (StrUtil.isBlank(text)) {
-            return "";
-        }
-        String s = text.replace("\r\n", "\n").replace("\r", "\n");
-        s = s.replaceAll("[ \t]+", " ");
-        s = s.replaceAll("\n{3,}", "\n\n");
-        s = s.trim();
-        if (s.length() <= EVIDENCE_LINE_MAX_CHARS) {
-            return s;
-        }
-        return s.substring(0, EVIDENCE_LINE_MAX_CHARS) + "...";
-    }
-
-    private List<SourceWithEvidence> retrieveDocSourcesFromEs(String projectId, List<Float> queryVector) {
-        if (StrUtil.isBlank(projectId) || CollUtil.isEmpty(queryVector)) {
-            return List.of();
-        }
-
-        ensureProjectDocIndex();
-
-        NativeQuery nativeQuery = NativeQuery.builder()
-                .withQuery(q -> q.scriptScore(ss -> ss
-                        .query(sq -> sq.bool(b -> b
-                                .filter(f -> f.term(t -> t.field("projectId").value(projectId)))
-                                .filter(f -> f.exists(e -> e.field("embedding")))
-                        ))
-                        .script(s -> s
-                                .source("cosineSimilarity(params.query_vector, 'embedding') + 1.0")
-                                .params("query_vector", JsonData.of(queryVector))
-                        )
-                ))
-                .withPageable(PageRequest.of(0, DOC_TOPK_CHUNKS))
-                .build();
-
-        SearchHits<EsCreativeProjectDocChunk> hits = elasticsearchOperations.search(nativeQuery, EsCreativeProjectDocChunk.class);
-        if (hits.isEmpty()) {
-            return List.of();
-        }
-
-        // 按文档名称进行汇总；为每个文档保留几段关键内容作为证据。
-        Map<String, List<String>> evidenceByDoc = new LinkedHashMap<>();
-        for (SearchHit<EsCreativeProjectDocChunk> hit : hits.getSearchHits()) {
-            EsCreativeProjectDocChunk c = hit.getContent();
-            if (StrUtil.isBlank(c.getDocName())) {
-                continue;
-            }
-            String docName = c.getDocName();
-            evidenceByDoc.putIfAbsent(docName, new ArrayList<>());
-            List<String> ev = evidenceByDoc.get(docName);
-            if (ev.size() < EVIDENCE_LINES_PER_SOURCE) {
-                String line = normalizeEvidence(c.getText());
-                if (StrUtil.isNotBlank(line)) {
-                    ev.add(line);
-                }
-            }
-            if (evidenceByDoc.size() >= MAX_SOURCES) {
-                break;
-            }
-        }
-
-        return evidenceByDoc.entrySet().stream()
-                .sorted(Map.Entry.comparingByKey())
-                .limit(MAX_SOURCES)
-                .map(e -> {
-                    CreativeSourceVO vo = new CreativeSourceVO();
-                    vo.setType("doc");
-                    vo.setTitle(e.getKey());
-                    return new SourceWithEvidence(vo, e.getValue(), "doc:" + e.getKey());
-                })
-                .toList();
-    }
-
-    private List<SourceWithEvidence> retrieveNoteSourcesFromEs(Long userId, List<Float> queryVector) {
-        if (userId == null || userId <= 0 || CollUtil.isEmpty(queryVector)) {
-            return List.of();
-        }
-
-        ensureUserNoteIndex();
-
-        NativeQuery nativeQuery = NativeQuery.builder()
-                .withQuery(q -> q.scriptScore(ss -> ss
-                        .query(sq -> sq.bool(b -> b
-                                .filter(f -> f.term(t -> t.field("uid").value(userId)))
-                                .filter(f -> f.exists(e -> e.field("embedding")))
-                        ))
-                        .script(s -> s
-                                .source("cosineSimilarity(params.query_vector, 'embedding') + 1.0")
-                                .params("query_vector", JsonData.of(queryVector))
-                        )
-                ))
-                .withPageable(PageRequest.of(0, NOTE_TOPK))
-                .build();
-
-        SearchHits<EsAiUserNoteVector> hits = elasticsearchOperations.search(nativeQuery, EsAiUserNoteVector.class);
-        if (hits.isEmpty()) {
-            return List.of();
-        }
-
-        Map<Long, SourceWithEvidence> byNoteId = new LinkedHashMap<>();
-        for (SearchHit<EsAiUserNoteVector> hit : hits.getSearchHits()) {
-            EsAiUserNoteVector c = hit.getContent();
-            if (c.getNoteId() == null) {
-                continue;
-            }
-            Long noteId = c.getNoteId();
-            byNoteId.computeIfAbsent(noteId, nid -> {
-                CreativeSourceVO vo = new CreativeSourceVO();
-                vo.setType("note");
-                vo.setTitle(StrUtil.blankToDefault(c.getTitle(), "笔记" + nid));
-                List<String> ev = new ArrayList<>();
-                String line = normalizeEvidence(c.getContent());
-                if (StrUtil.isNotBlank(line)) {
-                    ev.add(line);
-                }
-                return new SourceWithEvidence(vo, ev, "note:" + nid);
-            });
-            if (byNoteId.size() >= MAX_SOURCES) {
-                break;
-            }
-        }
-
-        return byNoteId.values().stream().limit(MAX_SOURCES).toList();
-    }
-
     private void ensureProjectDocIndex() {
         try {
             var ops = elasticsearchOperations.indexOps(EsCreativeProjectDocChunk.class);
@@ -603,105 +447,11 @@ public class CreativeStudioServiceImpl implements CreativeStudioService {
                 ops.putMapping();
             }
         } catch (Exception e) {
-            // ES 初始化失败，暂时允许继续运行
             log.warn("初始化 ES 索引失败: index={}, entity={}", projectDocIndex, EsCreativeProjectDocChunk.class.getSimpleName(), e);
         }
     }
 
-    private void ensureUserNoteIndex() {
-        try {
-            var ops = elasticsearchOperations.indexOps(EsAiUserNoteVector.class);
-            if (!ops.exists()) {
-                ops.create();
-                ops.putMapping();
-            }
-        } catch (Exception e) {
-            log.warn("初始化 ES 索引失败: index={}, entity={}", userNoteIndex, EsAiUserNoteVector.class.getSimpleName(), e);
-        }
-    }
-
-    private List<SourceWithEvidence> retrieveWebSources(String queryText) {
-        if (StrUtil.isBlank(queryText)) {
-            return List.of();
-        }
-        if (StrUtil.isBlank(zhipuApiKey)) {
-            return List.of();
-        }
-
-        try {
-            ZhipuAiClient client = ZhipuAiClient.builder().ofZHIPU().apiKey(zhipuApiKey).build();
-
-            SearchChatMessage msg = SearchChatMessage.builder()
-                    .role("user")
-                    .content(queryText)
-                    .build();
-
-            WebSearchParamsRequest req = WebSearchParamsRequest.builder()
-                    .model("search_pro")
-                    .stream(false)
-                    .messages(List.of(msg))
-                    .recentDays(30)
-                    .build();
-
-            WebSearchApiResponse resp = client.webSearch().createWebSearchPro(req);
-            if (resp == null || !resp.isSuccess() || resp.getData() == null || CollUtil.isEmpty(resp.getData().getChoices())) {
-                return List.of();
-            }
-            var choice0 = resp.getData().getChoices().get(0);
-            if (choice0 == null || choice0.getMessage() == null || CollUtil.isEmpty(choice0.getMessage().getToolCalls())) {
-                return List.of();
-            }
-
-            Map<String, SourceWithEvidence> byUrl = new LinkedHashMap<>();
-            for (var tc : choice0.getMessage().getToolCalls()) {
-                if (tc == null || CollUtil.isEmpty(tc.getSearchResult())) {
-                    continue;
-                }
-                tc.getSearchResult().forEach(r -> {
-                    if (r == null || StrUtil.isBlank(r.getLink()) || StrUtil.isBlank(r.getTitle())) {
-                        return;
-                    }
-                    if (byUrl.size() >= WEB_TOPK) {
-                        return;
-                    }
-                    byUrl.computeIfAbsent(r.getLink(), u -> {
-                        CreativeSourceVO vo = new CreativeSourceVO();
-                        vo.setType("web");
-                        vo.setTitle(r.getTitle());
-                        vo.setUrl(u);
-                        List<String> ev = new ArrayList<>();
-                        // Try to extract snippet-like fields without depending on SDK getters.
-                        try {
-                            Map<String, Object> m = JSON.parseObject(JSON.toJSONString(r));
-                            Object snippet = m.get("content");
-                            if (snippet == null) snippet = m.get("snippet");
-                            if (snippet == null) snippet = m.get("summary");
-                            if (snippet == null) snippet = m.get("desc");
-                            String line = normalizeEvidence(snippet == null ? "" : String.valueOf(snippet));
-                            if (StrUtil.isNotBlank(line)) {
-                                ev.add(line);
-                            }
-                        } catch (Exception ignore) {
-                            // best-effort
-                        }
-                        return new SourceWithEvidence(vo, ev, "web:" + u);
-                    });
-                });
-                if (byUrl.size() >= WEB_TOPK) {
-                    break;
-                }
-            }
-
-            return byUrl.values().stream()
-                    .limit(WEB_TOPK)
-                    .toList();
-        } catch (Exception e) {
-            log.warn("web_search(search_pro) 调用失败", e);
-            return List.of();
-        }
-    }
-
-    private String outlineUserPrompt(CreativeOutlineGenerateRequestDTO req, List<SourceWithEvidence> sources) {
+    private String outlineUserRequirement(CreativeOutlineGenerateRequestDTO req) {
         StringBuilder sb = new StringBuilder();
         sb.append("用户需求：\n").append(req.getRequirement()).append("\n\n");
         if (StrUtil.isNotBlank(req.getCategory())) {
@@ -713,45 +463,31 @@ public class CreativeStudioServiceImpl implements CreativeStudioService {
         if (StrUtil.isNotBlank(req.getTone())) {
             sb.append("语气：").append(req.getTone()).append("\n");
         }
-        sb.append("\n可用来源：\n");
-        for (SourceWithEvidence sw : sources) {
-            CreativeSourceVO s = sw.source;
-            sb.append("- ").append(s.getId() == null ? "" : s.getId()).append(" ")
-                    .append("[").append(s.getType()).append("] ")
-                    .append(s.getTitle());
-            if (StrUtil.isNotBlank(s.getUrl())) {
-                sb.append(" (").append(s.getUrl()).append(")");
-            }
-            sb.append("\n");
-        }
+        sb.append("\n当前项目ID：").append(req.getProjectId());
+        sb.append("\n请先使用工具搜索相关资料，获得素材后生成大纲。");
+        return sb.toString();
+    }
 
-        sb.append("\n来源内容摘录（用于引用判断）：\n");
-        for (SourceWithEvidence sw : sources) {
-            CreativeSourceVO s = sw.source;
-            sb.append("[").append(s.getId()).append("] ").append(s.getTitle()).append("\n");
-            List<String> ev = sw.evidence == null ? List.of() : sw.evidence;
-            if (ev.isEmpty()) {
-                sb.append("- （无摘录）\n");
+    private void remapCitations(CreativeOutlineVO.Outline outline, Map<String, String> refToSid) {
+        if (refToSid.isEmpty() || outline == null || CollUtil.isEmpty(outline.getSections())) {
+            return;
+        }
+        for (CreativeOutlineVO.Section section : outline.getSections()) {
+            if (section == null || CollUtil.isEmpty(section.getPoints())) {
                 continue;
             }
-            int n = 0;
-            for (String line : ev) {
-                if (StrUtil.isBlank(line)) {
+            for (CreativeOutlineVO.Point point : section.getPoints()) {
+                if (point == null || CollUtil.isEmpty(point.getCitations())) {
                     continue;
                 }
-                sb.append("- ").append(line).append("\n");
-                n++;
-                if (n >= EVIDENCE_LINES_PER_SOURCE) {
-                    break;
+                List<String> remapped = new ArrayList<>();
+                for (String c : point.getCitations()) {
+                    String mapped = refToSid.getOrDefault(c.trim(), c.trim());
+                    remapped.add(mapped);
                 }
-            }
-            if (n == 0) {
-                sb.append("- （无摘录）\n");
+                point.setCitations(remapped);
             }
         }
-
-        sb.append("\n请基于以上摘录生成大纲，并在每个要点标注 citations（S1..S8）。\n");
-        return sb.toString();
     }
 
     private String draftUserPrompt(String outlineJson, String extra) {
