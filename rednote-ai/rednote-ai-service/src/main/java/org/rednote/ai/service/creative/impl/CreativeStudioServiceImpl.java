@@ -26,6 +26,7 @@ import org.rednote.ai.repository.EsCreativeProjectDocChunkRepository;
 import org.rednote.ai.service.creative.CreativeStudioService;
 import org.rednote.ai.tool.CreativeTools;
 import org.rednote.common.utils.UserHolder;
+import org.springaicommunity.tool.search.ToolSearchToolCallAdvisor;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
@@ -74,6 +75,7 @@ public class CreativeStudioServiceImpl implements CreativeStudioService {
     private final EsCreativeProjectDocChunkRepository projectDocChunkRepository;
     private final ZhiPuAiChatModel zhiPuAiChatModel;
     private final CreativeTools creativeTools;
+    private final ToolSearchToolCallAdvisor toolSearchAdvisor;
     private final RestTemplate restTemplate = new RestTemplate();
 
     @Value("${spring.ai.zhipuai.api-key:}")
@@ -164,6 +166,7 @@ public class CreativeStudioServiceImpl implements CreativeStudioService {
         try {
             ChatClient chatClient = ChatClient.builder(zhiPuAiChatModel)
                     .defaultTools(creativeTools)
+                    .defaultAdvisors(toolSearchAdvisor)
                     .build();
 
             String system = AiPromptConstant.OUTLINE_SYSTEM_PROMPT;
