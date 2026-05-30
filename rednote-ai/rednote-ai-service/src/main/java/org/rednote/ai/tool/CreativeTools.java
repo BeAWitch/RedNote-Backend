@@ -197,7 +197,7 @@ public class CreativeTools {
                     .content(query)
                     .build();
             WebSearchParamsRequest req = WebSearchParamsRequest.builder()
-                    .model("search_pro")
+                    .model("web-search-pro")
                     .stream(false)
                     .messages(List.of(msg))
                     .recentDays(30)
@@ -266,11 +266,13 @@ public class CreativeTools {
         EmbeddingCreateParams req = EmbeddingCreateParams.builder()
                 .model("embedding-3")
                 .input(List.of(text))
-                .dimensions(2048)
                 .build();
         EmbeddingResponse resp = client.embeddings().createEmbeddings(req);
-        if (resp == null || resp.getData() == null || resp.getData().getData() == null || resp.getData().getData().isEmpty()) {
-            throw new IllegalStateException("embedding 返回为空");
+        if (resp == null || !resp.isSuccess() || resp.getData() == null || resp.getData().getData() == null || resp.getData().getData().isEmpty()) {
+            String errMsg = (resp != null && resp.getError() != null)
+                    ? resp.getError().getCode() + ": " + resp.getError().getMessage()
+                    : "返回为空";
+            throw new IllegalStateException("embedding 返回为空：" + errMsg);
         }
         List<Double> emb = resp.getData().getData().get(0).getEmbedding();
         float[] vec = new float[emb.size()];
