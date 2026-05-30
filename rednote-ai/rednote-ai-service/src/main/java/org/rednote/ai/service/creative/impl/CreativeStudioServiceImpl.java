@@ -423,11 +423,14 @@ public class CreativeStudioServiceImpl implements CreativeStudioService {
             EmbeddingCreateParams req = EmbeddingCreateParams.builder()
                     .model("embedding-3")
                     .input(batch)
-                    .dimensions(2048)
                     .build();
             EmbeddingResponse resp = client.embeddings().createEmbeddings(req);
-            if (resp == null || resp.getData() == null || resp.getData().getData() == null) {
-                throw new IllegalStateException("embedding 调用失败：返回为空");
+            if (resp == null || !resp.isSuccess() || resp.getData() == null || resp.getData().getData() == null) {
+                String errMsg = (resp != null && resp.getError() != null)
+                        ? resp.getError().getCode() + ": " + resp.getError().getMessage()
+                        : "返回为空";
+                log.warn("embedding 调用失败: {}，参数：{}", errMsg, JSON.toJSONString(req));
+                throw new IllegalStateException("embedding 调用失败：" + errMsg);
             }
             resp.getData().getData().forEach(d -> {
                 List<Double> emb = d.getEmbedding();
